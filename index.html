@@ -735,8 +735,10 @@ const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=
 const ymdhm=t=>{const d=new Date(t);return key(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
 function bkHtml(){const lb=lsGet('my-calendar-lastbk');
  return`<h3>백업·복원</h3><div class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5">기록은 이 기기에만 저장돼요. 가끔 백업 파일을 저장해 두세요.<br>마지막 백업: ${lb?ymdhm(+lb):'없음'}</div>`+
- `<div class="g g2"><button class="btn" data-act="bkup">백업 파일 저장</button><label class="btn" style="cursor:pointer">백업 파일 불러오기<input type="file" id="rf" accept=".json,application/json" hidden></label></div>`+
- (RST?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>일정 ${RST.data.events.length}개${RST.at?' · '+ymdhm(RST.at)+' 백업':''}<br><span style="color:var(--sun)">복원하면 지금 기록이 모두 이 파일 내용으로 바뀌어요.</span><div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok">복원하기</button></div></div>`:'')+
+ `<div class="g g2"><button class="btn" data-act="bkup">백업 파일 저장</button><label class="btn" style="cursor:pointer">백업 파일 불러오기<input type="file" id="rf" hidden></label></div>`+
+ `<div class="sub" style="padding:8px 2px 0;font-size:10.5px">다른 캘린더에서 내보낸 .ics 파일도 불러올 수 있어요.</div>`+
+ (RST&&RST.ics?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>가져올 일정 ${RST.events.length}개${RST.skip?` (이미 있는 ${RST.skip}개 제외)`:''}${RST.tpls.length?`<br>새 템플릿: ${RST.tpls.map(t=>esc(t.name)).join(', ')}`:''}<br>지금 기록은 그대로 두고 일정만 추가돼요.<div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok" ${RST.events.length?'':'disabled'}>가져오기</button></div></div>`:'')+
+ (RST&&!RST.ics?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>일정 ${RST.data.events.length}개${RST.at?' · '+ymdhm(RST.at)+' 백업':''}<br><span style="color:var(--sun)">복원하면 지금 기록이 모두 이 파일 내용으로 바뀌어요.</span><div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok">복원하기</button></div></div>`:'')+
  (BKMSG?`<div class="sub" style="padding:10px 2px 0;font-size:11px">${esc(BKMSG)}</div>`:'')}
 function bkup(){const d=new Date(),name='나의달력-백업-'+key(d)+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
  const f=new File([JSON.stringify({app:'my-calendar',v:1,at:d.getTime(),data:S})],name,{type:'application/json'});
@@ -746,11 +748,48 @@ function bkup(){const d=new Date(),name='나의달력-백업-'+key(d)+'-'+pad(d.
  try{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);done()}
  catch(e){BKMSG='백업 파일을 저장하지 못했어요.';sheet()}}
 function rstRead(file){const fr=new FileReader();RST=null;
- fr.onload=()=>{try{const j=JSON.parse(fr.result),d=j&&j.data?j.data:j;
+ fr.onload=()=>{if(/^﻿?\s*BEGIN:VCALENDAR/i.test(fr.result)){try{RST=icsRead(fr.result,file.name);BKMSG=RST.events.length?'':'새로 가져올 일정이 없어요.'}catch(e){BKMSG='.ics 파일을 읽지 못했어요.'}return sheet()}
+  try{const j=JSON.parse(fr.result),d=j&&j.data?j.data:j;
    if(!d||!Array.isArray(d.events)||!Array.isArray(d.tpls))throw 0;RST={name:file.name,at:j.at||d.ts,data:d};BKMSG=''}
   catch(e){BKMSG='이 파일은 나의 달력 백업 파일이 아니에요.'}sheet()};
  fr.onerror=()=>{BKMSG='파일을 읽지 못했어요.';sheet()};fr.readAsText(file)}
-function rstApply(){if(!RST)return;const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
+// .ics 가져오기: 분류(CATEGORIES)는 같은 이름의 템플릿 모양을 따르고, 없으면 템플릿을 새로 만든다
+const ICS_CAT={'확정':'확정 스케줄','예정':'예정 스케줄','장기 확정':'확정 장기 스케줄'},ICS_COL=['#b48ad9','#ffc229','#3fa9f5','#00a58e','#f0568a','#8a8c96'];
+function icsParse(txt){const lines=txt.replace(/\r\n?/g,'\n').replace(/\n[ \t]/g,'').split('\n'),out=[];let c=null;
+ const un=v=>v.replace(/\\n/gi,'\n').replace(/\\([,;\\])/g,'$1');
+ for(const l of lines){if(l==='BEGIN:VEVENT'){c={};continue}if(l==='END:VEVENT'){if(c&&c.ds)out.push(c);c=null;continue}if(!c)continue;
+  const i=l.indexOf(':');if(i<0)continue;const k=l.slice(0,i),v=l.slice(i+1),n=k.split(';')[0].toUpperCase();
+  if(n==='UID')c.uid=v;else if(n==='SUMMARY')c.title=un(v);else if(n==='LOCATION')c.place=un(v);else if(n==='DESCRIPTION')c.desc=un(v);
+  else if(n==='CATEGORIES')c.cat=un(v).split(',')[0].trim();else if(n==='RRULE')c.rr=v;
+  else if(n==='DTSTART'||n==='DTEND'){let m=/^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)\d\d(Z?))?/.exec(v);if(!m)continue;
+   let d=new Date(+m[1],m[2]-1,+m[3],m[4]?+m[4]:12,m[5]?+m[5]:0);if(m[6])d=new Date(Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5])+9*36e5),d=new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),d.getUTCHours(),d.getUTCMinutes());
+   const o={k:key(d),t:m[4]?pad(d.getHours())+':'+pad(d.getMinutes()):''};if(n==='DTSTART')c.ds=o;else c.de=o}}
+ return out}
+function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
+ const tpl=cat=>{cat=cat||'확정';if(tOf[cat])return tOf[cat];const nm=ICS_CAT[cat]||cat;
+  let t=S.tpls.find(x=>x.name===nm)||S.tpls.find(x=>x.name===cat);
+  if(!t){t={id:uid(),name:cat,color:ICS_COL[newT.length%ICS_COL.length],type:'line',shape:'cry',check:false};newT.push(t)}return tOf[cat]=t};
+ let evs=raw.map(r=>{const t=tpl(r.cat),e={id:'ics-'+(r.uid||uid()),title:r.title||'일정',date:r.ds.k,color:t.color,type:t.type,shape:t.shape,cat:r.cat||'확정'};
+  if(r.ds.t)e.time=r.ds.t;if(r.place)e.place=r.place;
+  if(!r.ds.t&&r.de&&!r.de.t){const last=key(at(r.de.k,-1));if(last>e.date)e.end=last}
+  if(r.rr&&/FREQ=YEARLY/.test(r.rr))e.rep='y';
+  // 설명이 "PM. 4 / 장소"처럼 시간·장소만 반복하면 본문으로 넣지 않는다
+  const rest=(r.desc||'').replace(/^\s*(AM|PM)\.?\s*\d{1,2}(:\d\d)?\s*(\/\s*)?/i,'').trim();if(rest&&rest!==r.place)e.body=r.desc;
+  if(t.check)e.check=true;return e});
+ // 하루씩 따로 들어간 장기 일정(같은 제목·분류가 연달아 이어짐)은 기간 일정 하나로 합친다
+ const longCats=new Set(Object.keys(tOf).filter(c=>tOf[c].type==='long'));
+ evs.sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+ const open={},merged=[];
+ for(const e of evs){if(!longCats.has(e.cat)||e.time){merged.push(e);continue}const k=e.cat+'|'+e.title,p=open[k];
+  if(p&&key(at(p.end||p.date,1))===e.date){p.end=e.end||e.date;continue}open[k]=e;merged.push(e)}
+ // 해마다 같은 날 들어간 하루 일정(3년 이상 연속)은 매년 반복 하나로 줄인다
+ const grp={};merged.forEach(e=>{if(e.time||e.end)return;const k=e.cat+'|'+e.title+'|'+e.date.slice(5);(grp[k]=grp[k]||[]).push(e)});
+ const drop=new Set();Object.values(grp).forEach(g=>{if(g.length<3)return;const ys=g.map(e=>+e.date.slice(0,4));if(ys.some((y,i)=>i&&y!==ys[i-1]+1))return;g[0].rep='y';g.slice(1).forEach(e=>drop.add(e))});
+ const have=new Set(S.events.map(e=>e.id));let skip=0;
+ const fin=merged.filter(e=>!drop.has(e)).filter(e=>{if(have.has(e.id)){skip++;return false}return true});
+ const used=new Set(fin.map(e=>tOf[e.cat||'확정']));fin.forEach(e=>delete e.cat);
+ return{ics:1,name,events:fin,tpls:newT.filter(t=>used.has(t)),skip}}
+function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length;S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 R();syncInit();
 (()=>{const bar=document.getElementById('bar'),f=()=>{if(bar&&bar.offsetHeight)document.documentElement.style.setProperty('--barh',bar.offsetHeight+'px')};f();setTimeout(f,300);if(typeof addEventListener==='function')addEventListener('resize',f)})();
