@@ -794,7 +794,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v8';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v9',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -807,14 +807,17 @@ async function ghGet(){const r=await ghApi('/contents/data.json',{headers:GH.sha
 async function ghPut(){const b={message:'sync',content:b64e(JSON.stringify({app:'my-calendar',v:1,data:S}))};if(GH.sha)b.sha=GH.sha;
  const r=await ghApi('/contents/data.json',{method:'PUT',body:JSON.stringify(b)});if(!r.ok)throw r.status;
  GH.sha=(await r.json()).content.sha;GH.base=S.ts||0;GHS.etag='';ghSave()}
-function ghApply(d){S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);try{localStorage.setItem('my-calendar-v1',JSON.stringify(S))}catch(e){}GH.base=S.ts||0;ghSave();R()}
+function ghApply(d){if(S.events.length)lsSet(GHP,JSON.stringify({at:Date.now(),data:S})); // 서버 기록으로 바뀌기 직전 기록을 보관
+ S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);try{localStorage.setItem('my-calendar-v1',JSON.stringify(S))}catch(e){}GH.base=S.ts||0;ghSave();R()}
 const ghErr=e=>e===401?'토큰이 올바르지 않아요. 토큰을 다시 복사해서 붙여넣어 주세요.':e===403?'토큰에 쓰기 권한이 없어요. 토큰 설정에서 Contents를 "Read and write"로 바꿔 주세요.':e===404?'이 토큰으로는 저장소('+(GH&&GH.repo||'')+')에 접근할 수 없어요. 저장소 이름과, 토큰의 Repository access에 my-calendar-data가 선택돼 있는지 확인해 주세요.':'연결하지 못했어요. 잠시 후 다시 시도할게요.';
 async function ghSync(){if(!GH||!GH.token||GHS.busy||GHS.ask||ui==='ev'||ui==='tpl')return;GHS.busy=1;
  try{const dirty=(S.ts||0)>(GH.base||0),g=await ghGet();
   if(g.none)await ghPut();
   else if(g.same){if(dirty)await ghPut()}
   else{GH.sha=g.sha;ghSave();const rt=g.data.ts||0;
-   if(GH.base==null){GHS.ask=g.data;GHS.busy=0;return sheet()} // 처음 연결할 때 서버에 기록이 있으면 어느 쪽을 쓸지 묻는다
+   if(GH.base==null){const rE=!(g.data.events||[]).length&&!g.data.ts,lE=!S.events.length&&!S.ts;
+    if(rE&&!lE){await ghPut();GHS.last=Date.now();GHS.busy=0;return sheet()} // 서버가 비어 있으면 이 기기 기록을 올린다
+    if(!lE||!rE){if(lE){ghApply(g.data);GHS.last=Date.now();GHS.busy=0;return sheet()}GHS.ask=g.data;GHS.busy=0;return sheet()}} // 이 기기가 비어 있으면 서버 기록을 받고, 둘 다 기록이 있을 때만 묻는다 // 처음 연결할 때 서버에 기록이 있으면 어느 쪽을 쓸지 묻는다
    if(rt>(S.ts||0))ghApply(g.data);else if(rt<(S.ts||0))await ghPut();else{GH.base=rt;ghSave()}}
   GHS.last=Date.now();GHS.msg=''}
  catch(e){if(e===409||e===422){GH.sha='';GHS.etag='';GHS.busy=0;return ghSched()}GHS.msg=ghErr(e)}
@@ -824,12 +827,14 @@ function ghHtml(){const msg=GHS.msg?`<div class="sub" style="padding:8px 2px 0;f
  if(!GH||!GH.token){const own=/\.github\.io$/.test(location.hostname)?location.hostname.split('.')[0]+'/my-calendar-data':'';
   return h+`<div ${sub}>GitHub 비공개 저장소에 기록을 저장해서 연결한 기기끼리 자동으로 같아져요. 기기마다 한 번씩 연결해 주세요.</div><input class="fld" id="ghrepo" value="${esc(own)}" placeholder="저장소 (아이디/저장소이름)"><input class="fld" id="ghtok" type="password" autocomplete="off" placeholder="GitHub 토큰"><button class="btn" data-act="ghcon">연결하기</button>${msg}`}
  if(GHS.ask)return h+`<div ${sub}>서버에 이미 기록이 있어요 (일정 ${(GHS.ask.events||[]).length}개).<br>이 기기 기록(일정 ${S.events.length}개)과 어떻게 맞출까요?</div><div class="g g2"><button class="btn" data-act="ghpull">서버 기록 받기</button><button class="btn" data-act="ghpush">이 기기 기록 올리기</button></div><div class="sub" style="padding:8px 2px 0;font-size:10.5px;line-height:1.5">받기: 이 기기 기록이 서버 기록으로 바뀌어요.<br>올리기: 서버 기록이 이 기기 기록으로 바뀌어요.</div>`;
- return h+`<div ${sub}>연결됨: ${esc(GH.repo)}<br>${GHS.busy?'동기화 중…':GHS.last?'마지막 동기화: '+ymdhm(GHS.last):'곧 동기화해요'}</div><div class="g g2"><button class="btn" data-act="ghnow">지금 동기화</button><button class="btn" data-act="ghoff">연결 끊기</button></div>${msg}`}
+ return h+`<div ${sub}>연결됨: ${esc(GH.repo)}<br>${GHS.busy?'동기화 중…':GHS.last?'마지막 동기화: '+ymdhm(GHS.last):'곧 동기화해요'}</div><div class="g g2"><button class="btn" data-act="ghnow">지금 동기화</button><button class="btn" data-act="ghoff">연결 끊기</button></div>${prevHtml()}${msg}`}
+function prevHtml(){let p=null;try{p=JSON.parse(lsGet(GHP)||"null")}catch(e){}if(!p||!p.data)return"";return`<div class="sub" style="padding:10px 2px 6px;font-size:10.5px;line-height:1.5">동기화로 바뀌기 전 이 기기 기록: 일정 ${p.data.events.length}개 (${ymdhm(p.at)})</div><button class="btn" data-act="ghprev">동기화 전 기록 되살리기</button>`}
 function ghAct(a){
  if(a==='ghcon'){const repo=(document.getElementById('ghrepo').value||'').trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/$/,''),token=(document.getElementById('ghtok').value||'').trim();
   if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!token){GHS.msg='저장소 이름과 토큰을 입력해 주세요.';return sheet()}
   GH={repo,token,base:null,sha:''};ghSave();GHS.msg='';GHS.etag='';sheet();return ghSync()}
  if(a==='ghnow'){GHS.msg='';sheet();return ghSync()}
+ if(a==='ghprev'){let p=null;try{p=JSON.parse(lsGet(GHP)||'null')}catch(e){}if(!p)return;S=Object.assign({dec:{},ver:2},p.data);S.tpls=dedupeTpls(S.tpls);save();GHS.msg='';return R()} // 되살린 기록은 저장되면서 서버에도 올라간다
  if(a==='ghoff'){GH=null;ghSave();GHS.ask=null;GHS.msg='';GHS.last=0;return sheet()}
  if(a==='ghpull'){const d=GHS.ask;GHS.ask=null;GHS.last=Date.now();return ghApply(d)}
  if(a==='ghpush'){GHS.ask=null;GHS.busy=1;sheet();ghPut().then(()=>{GHS.last=Date.now();GHS.msg=''},e=>{GHS.msg=ghErr(e)}).then(()=>{GHS.busy=0;sheet()})}}
