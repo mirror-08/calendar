@@ -26,11 +26,11 @@ button{background:none;border:0;cursor:pointer}
 .top{display:flex;align-items:center;gap:6px;margin:6px 4px 14px}
 .top h1{margin:0;font-size:30px;flex:1}.top .yr{font-size:14px;color:var(--sub);margin-left:6px;font-weight:400}
 .top button{font-size:22px;padding:2px 10px;color:var(--sub)}
-.dows,.week{display:grid;grid-template-columns:repeat(7,1fr)}
+.dows,.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .dows div{padding:8px 4px;font-size:15px;border-bottom:1.5px dashed var(--line)}
 .week{border-bottom:1.5px dashed var(--line);flex:1;min-height:104px}
 .cell{position:relative;padding:4px 2px 4px;display:flex;flex-direction:column;gap:2px;overflow-x:visible;overflow-y:clip;cursor:pointer}
-.cell.out{opacity:.35}.cell.sel{background:var(--today)}
+.cell.out{opacity:.35}.cell.out:empty{cursor:default}.cell.sel{background:var(--today)}
 .dn{font-size:17px;padding:0 4px;display:flex;justify-content:space-between;align-items:baseline}
 .cell.today .dn b{text-decoration:underline;text-underline-offset:3px}.dn b{font-weight:400}
 .dn small{font-size:10px;color:var(--sub)}
@@ -372,7 +372,16 @@ function sunLon(ms){const T=(ms/86400000+2440587.5-2451545)/36525,L0=280.46646+3
 const TC={};function termOf(d){const k=key(d);if(k in TC)return TC[k];const m0=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),a=Math.floor(sunLon(m0)/15),b=Math.floor(sunLon(m0+864e5)/15);return TC[k]=a!==b?TERMS[b%24]:''}
 const SOL={'1-1':'신정','3-1':'삼일절','5-5':'어린이날','6-6':'현충일','8-15':'광복절','10-3':'개천절','10-9':'한글날','12-25':'성탄절'},SUB=['3-1','5-5','8-15','10-3','10-9'];
 const sk=d=>(d.getMonth()+1)+'-'+d.getDate();
-function holiday(d){if(SOL[sk(d)])return SOL[sk(d)];const l=lunar(d);
+function holiday(d){return holidayBase(d)||(subDays(d.getFullYear())[key(d)]?'대체공휴일':'')}
+// 대체공휴일: 삼일절·어린이날·광복절·개천절·한글날·성탄절·부처님오신날은 주말이나 다른 공휴일과 겹치면, 설·추석 연휴는 일요일이나 다른 공휴일과 겹치면 다음 평일
+const SUBC={};
+function subDays(y){if(SUBC[y])return SUBC[y];const m=SUBC[y]={},hb=d=>!!holidayBase(d)||!!m[key(d)];
+ const give=d=>{d=new Date(d);while(d.getDay()===0||d.getDay()===6||hb(d))d.setDate(d.getDate()+1);m[key(d)]=1};
+ for(let d=new Date(y-1,11,20,12);d<new Date(y,11,31,12);d.setDate(d.getDate()+1)){const n=holidayBase(d),l=lunar(d),lh=l&&!l.leap&&((l.m==4&&l.d==8)||(l.m==8&&l.d==15)||(l.m==1&&l.d==1));if(!n)continue;
+  if(n==='설날'||n==='추석'){const days=[-1,0,1].map(i=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+i,12));if(days.some(x=>x.getDay()===0||(SOL[sk(x)]&&x!==d)))give(new Date(d.getFullYear(),d.getMonth(),d.getDate()+2,12));continue}
+  if((SUB.includes(sk(d))||sk(d)==='12-25'||n==='부처님오신날')&&(d.getDay()===0||d.getDay()===6||(SOL[sk(d)]&&lh)))give(new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,12))}
+ return m}
+function holidayBase(d){if(SOL[sk(d)])return SOL[sk(d)];const l=lunar(d);
  if(l&&!l.leap){if(l.m==1&&l.d==1)return'설날';if(l.m==1&&l.d==2)return'설날 연휴';if(l.m==4&&l.d==8)return'부처님오신날';if(l.m==8&&l.d==15)return'추석';if(l.m==8&&(l.d==14||l.d==16))return'추석 연휴'}
  const n=lunar(new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,12));if(n&&!n.leap&&n.m==1&&n.d==1)return'설날 연휴';
  return''}
@@ -387,8 +396,8 @@ function occ(e,k){const en=e.end||e.date;if(e.date<=k&&en>=k)return true;if(k<=e
  if(e.lrep){const la=lunar(a),lb=lunar(b);return !!(la&&lb&&!lb.leap&&la.m===lb.m&&la.d===lb.d)}return false}
 const SEGS=['seg','segd','arw','arwd'];
 const chipHtml=(e,k,low)=>{const s=e.date,en=e.end||e.date,rp=k>en,rg=en!==s&&!rp,dw=at(k).getDay();
- if(rg&&k!==s&&dw!==0)return`<span class="ch ${e.type}${low?' low':''}" style="visibility:hidden">&nbsp;</span>`;
- const left=span(k,en),nd=rg?Math.min(left,7-dw):1,lf=rg&&k!==s,rf=rg&&left>nd;let x=shapeCss(e.shape,e.color);
+ if(rg&&k!==s&&dw!==0&&k.slice(8)!=='01')return`<span class="ch ${e.type}${low?' low':''}" style="visibility:hidden">&nbsp;</span>`;
+ const me=key(new Date(view.getFullYear(),view.getMonth()+1,0,12)),left=span(k,en),nd=rg?Math.min(left,7-dw,span(k,me<en?me:en)):1,lf=rg&&k!==s,rf=rg&&left>nd;let x=shapeCss(e.shape,e.color);
  if(e.shape==='box'||e.shape==='round'){if(lf)x+=';border-left:0';if(rf)x+=';border-right:0'}
  if(e.shape==='round'||e.shape==='rbg'){if(lf)x+=';border-top-left-radius:0;border-bottom-left-radius:0';if(rf)x+=';border-top-right-radius:0;border-bottom-right-radius:0'}
  const w=rg?`;width:calc(${nd}*(100% + 4px) - ${(lf?0:4)+(rf?0:4)}px);margin-left:${lf?-2:2}px;margin-right:0`:'';
@@ -410,7 +419,8 @@ function draw(){const EI=new Map(S.events.map((e,i)=>[e.id,i]));
  for(let w=0;w<6;w++){const d0=new Date(st.getFullYear(),st.getMonth(),st.getDate()+w*7,12);if(w>=4&&d0.getMonth()!==view.getMonth()&&w*7+st.getDate()>0&&d0.getMonth()!==view.getMonth())break;h+='<div class="week">';
   for(let i=0;i<7;i++){const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+i,12),k=key(d),hn=holiday(d),l=lunar(d),dc=S.dec[k];
    const evs=S.events.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));let lowDone=0;
-   h+=`<div class="cell ${d.getMonth()!==view.getMonth()?'out ':''}${k===tk?'today ':''}${k===sel?'sel ':''}${hn||d.getDay()==0?'red':d.getDay()==6?'sat':''}" data-act="day" data-k="${k}">${layer(dc,(k===tk||k===sel)?'calc(var(--cw)*.61)':'calc(var(--cw)*.42)')}<div class="hd"><div class="dn"><b>${pad(d.getDate())}</b>${k===tk||k===sel?`<small>${dd(k)}</small>`:''}</div>`+
+   if(d.getMonth()!==view.getMonth()){h+='<div class="cell out"></div>';continue} // 이번 달이 아닌 날은 비워 둔다
+   h+=`<div class="cell ${k===tk?'today ':''}${k===sel?'sel ':''}${hn||d.getDay()==0?'red':d.getDay()==6?'sat':''}" data-act="day" data-k="${k}">${layer(dc,(k===tk||k===sel)?'calc(var(--cw)*.61)':'calc(var(--cw)*.42)')}<div class="hd"><div class="dn"><b>${pad(d.getDate())}</b>${k===tk||k===sel?`<small>${dd(k)}</small>`:''}</div>`+
    ((k===tk||k===sel)&&l?`<div class="sub">음 ${l.leap?'윤':''}${l.m}.${l.d}</div>`:'')+(hn?`<div class="sub hl2">${hn}</div>`:termOf(d)?`<div class="sub term">${termOf(d)}</div>`:'')+'</div>'+
    evs.filter(e=>e.type!=='dot').map(e=>{const lw=e.type==='low'&&!lowDone;if(lw)lowDone=1;return chipHtml(e,k,lw)}).join('')+(evs.some(e=>e.type==='dot')?`<div class="dots">${evs.filter(e=>e.type==='dot').map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>`:'')+(dc&&dc.stk?`<span class="stk" style="${POSCSS[dc.spos||'br']}">${dc.stk}</span>`:'')+'</div>'}
   h+='</div>'}
@@ -772,7 +782,9 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
   if(!t){t={id:uid(),name:nm,color:ICS_COL[newT.length%ICS_COL.length],type:'line',shape:'cry',check:false};newT.push(t)}return tOf[cat]=t};
  // 시간·장소는 칸에 넣지 않고 설명(예: "PM. 4 / 유니플렉스 1관")을 그대로 본문으로 쓴다
  const tTxt=t=>{const h=+t.slice(0,2),m=t.slice(3);return(h<12?'AM. ':'PM. ')+(h%12||12)+(m!=='00'?':'+m:'')};
- let evs=raw.map(r=>{const t=tpl(r.cat),e={id:'ics-'+(r.uid||uid()),title:r.title||'일정',date:r.ds.k,color:t.color,type:t.type,shape:t.shape,cat:r.cat||'확정',_t:r.ds.t};
+ // .ics에는 생일도 '확정'으로 들어 있어서, 제목에 생일·❣️가 있으면 '생일' 템플릿 모양을 쓴다
+ const bday=S.tpls.find(x=>x.name==='생일');
+ let evs=raw.map(r=>{const t=(bday&&/생일|❣️/.test(r.title||''))?bday:tpl(r.cat),e={id:'ics-'+(r.uid||uid()),title:r.title||'일정',date:r.ds.k,color:t.color,type:t.type,shape:t.shape,cat:r.cat||'확정',_t:r.ds.t};
   if(!r.ds.t&&r.de&&!r.de.t){const last=key(at(r.de.k,-1));if(last>e.date)e.end=last}
   if(r.rr&&/FREQ=YEARLY/.test(r.rr))e.rep='y';
   const body=r.desc||[r.ds.t&&tTxt(r.ds.t),r.place].filter(Boolean).join(' / ');if(body)e.body=body;
@@ -794,7 +806,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v9',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v10',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
