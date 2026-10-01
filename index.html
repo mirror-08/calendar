@@ -807,7 +807,7 @@ async function ghPut(){const b={message:'sync',content:b64e(JSON.stringify({app:
  const r=await ghApi('/contents/data.json',{method:'PUT',body:JSON.stringify(b)});if(!r.ok)throw r.status;
  GH.sha=(await r.json()).content.sha;GH.base=S.ts||0;GHS.etag='';ghSave()}
 function ghApply(d){S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);try{localStorage.setItem('my-calendar-v1',JSON.stringify(S))}catch(e){}GH.base=S.ts||0;ghSave();R()}
-const ghErr=e=>e===401||e===403?'토큰이 맞지 않거나 저장소 권한이 없어요.':e===404?'저장소를 찾을 수 없어요. 저장소 이름과 토큰 권한을 확인해 주세요.':'연결하지 못했어요. 잠시 후 다시 시도할게요.';
+const ghErr=e=>e===401?'토큰이 올바르지 않아요. 토큰을 다시 복사해서 붙여넣어 주세요.':e===403?'토큰에 쓰기 권한이 없어요. 토큰 설정에서 Contents를 "Read and write"로 바꿔 주세요.':e===404?'이 토큰으로는 저장소('+(GH&&GH.repo||'')+')에 접근할 수 없어요. 저장소 이름과, 토큰의 Repository access에 my-calendar-data가 선택돼 있는지 확인해 주세요.':'연결하지 못했어요. 잠시 후 다시 시도할게요.';
 async function ghSync(){if(!GH||!GH.token||GHS.busy||GHS.ask||ui==='ev'||ui==='tpl')return;GHS.busy=1;
  try{const dirty=(S.ts||0)>(GH.base||0),g=await ghGet();
   if(g.none)await ghPut();
