@@ -735,7 +735,7 @@ let BKMSG='',RST=null;
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const ymdhm=t=>{const d=new Date(t);return key(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
 function bkHtml(){const lb=lsGet('my-calendar-lastbk');
- return`<h3>백업·복원</h3><div class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5">기록은 이 기기에만 저장돼요. 가끔 백업 파일을 저장해 두세요.<br>마지막 백업: ${lb?ymdhm(+lb):'없음'}</div>`+
+ return`<h3>백업·복원</h3><div class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5">기록은 이 기기에만 저장돼요. 가끔 백업 파일을 저장해 두세요.<br>마지막 백업: ${lb?ymdhm(+lb):'없음'}<br>앱 버전: ${APPV}</div>`+
  `<div class="g g2"><button class="btn" data-act="bkup">백업 파일 저장</button><label class="btn" style="cursor:pointer">백업 파일 불러오기<input type="file" id="rf" hidden></label></div>`+
  `<div class="sub" style="padding:8px 2px 0;font-size:10.5px">다른 캘린더에서 내보낸 .ics 파일도 불러올 수 있어요.</div>`+
  (RST&&RST.ics?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>가져올 일정 ${RST.events.length}개${RST.repl?`<br>이전에 가져온 일정 ${RST.repl}개는 새로 바뀌어요.`:''}${RST.tpls.length?`<br>새 템플릿: ${RST.tpls.map(t=>esc(t.name)).join(', ')}`:''}<br>지금 기록은 그대로 두고 일정만 추가돼요.<div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok" ${RST.events.length?'':'disabled'}>가져오기</button></div></div>`:'')+
@@ -794,6 +794,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
+const APPV='v8';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};

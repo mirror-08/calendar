@@ -1,5 +1,5 @@
 // 앱을 고친 뒤 다시 올릴 때는 버전 숫자를 올려 주세요.
-const CACHE = 'my-calendar-v7';
+const CACHE = 'my-calendar-v8';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
 
   // 앱 화면: 인터넷이 되면 새 버전, 안 되면 저장된 버전
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => {
+    e.respondWith(fetch(req, { cache: 'no-store' }).then(r => {
       const copy = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', copy)); return r;
     }).catch(() => caches.match('./index.html')));
     return;
