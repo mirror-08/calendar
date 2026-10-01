@@ -146,14 +146,14 @@ textarea.fld{min-height:80px;resize:vertical}
 .cell.sel .dn small,.cell.sel .sub:not(.hl2),.cell.today .dn small,.cell.today .sub:not(.hl2){color:var(--ink)}
 .ch.seg,.ch.segd,.ch.arw,.ch.arwd{color:color-mix(in srgb,var(--c) 75%,#222)}
 :root{--cw:calc((min(100vw,720px) - 24px)/7)}
-.top{margin:calc(var(--cw)*.2) 2px calc(var(--cw)*.55)}.top h1{font-size:max(16px,calc(var(--cw)*.36));font-weight:700;color:color-mix(in srgb,var(--ink) 85%,var(--bg))}
+.top{margin:calc(var(--cw)*.07) 2px calc(var(--cw)*.6)}
 .top .yr{font-size:max(9px,calc(var(--cw)*.17));margin-left:6px}
-.dows div{font-size:max(9px,calc(var(--cw)*.18));padding:0 3px calc(var(--cw)*.22);color:color-mix(in srgb,var(--ink) 85%,var(--bg))}.dows div:first-child{color:var(--sun)}
+.dows div{font-size:max(9px,calc(var(--cw)*.18));padding:0 3px calc(var(--cw)*.085);color:color-mix(in srgb,var(--ink) 85%,var(--bg))}.dows div:first-child{color:var(--sun)}
 .cell{padding:calc(var(--cw)*.05) 2px 4px;gap:calc(var(--cw)*.05)}
 .dn{font-size:max(9px,calc(var(--cw)*.2));padding:0 1px;line-height:1.25;color:color-mix(in srgb,var(--ink) 85%,var(--bg))}.cell.sat .dn b{color:inherit}.cell.red .dn b{color:var(--sun)}
 .dn small{font-size:max(6px,calc(var(--cw)*.1))}
 .sub{font-size:max(6.5px,calc(var(--cw)*.125));padding:0 1px;line-height:1.3}.sub.term{color:color-mix(in srgb,var(--ink) 85%,var(--bg))}
-.ch{font-size:max(6px,calc(var(--cw)*.105));line-height:1.3;min-height:calc(var(--cw)*.19);padding:0 2px}
+.ch{font-size:max(6px,calc(var(--cw)*.105));line-height:1.3;min-height:calc(var(--cw)*.225);padding:0 2px}
 .stk{font-size:calc(var(--cw)*.26)}
 #tdb{position:fixed;left:12px;bottom:calc(46px + env(safe-area-inset-bottom,0px) + 10px);z-index:1;display:none}
 
@@ -298,6 +298,12 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .page .prow,.page .tmb{color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
 /* 휴대폰에서는 기기 뒤로가기로 닫으니 하루 일정의 닫기(✕) 버튼을 숨긴다 */
 @media (pointer:coarse){.dx{display:none}}
+/* 원래 앱처럼 일정이 칸 거의 끝까지 차게: 칸 좌우 여백은 날짜 글자에만 */
+.wrap{padding-top:4px}.cell{padding-left:0;padding-right:0}.cell .hd{padding:0 2px}
+.ch .tt{display:block}.mqi{display:inline-block;white-space:nowrap}
+.mqi.on{animation:mq var(--dur) ease-in-out infinite alternate}
+@keyframes mq{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(var(--mq))}}
+@media (prefers-reduced-motion:reduce){.mqi.on{animation:none}}
 </style></head>
 <body>
 <div class="wrap"><div class="top"><h1 id="ttl" data-act="menu" style="cursor:pointer"></h1></div>
@@ -406,9 +412,9 @@ const chipHtml=(e,k,low)=>{const s=e.date,en=e.end||e.date,rp=k>en,rg=en!==s&&!r
  const me=key(new Date(view.getFullYear(),view.getMonth()+1,0,12)),left=span(k,en),nd=rg?Math.min(left,7-dw,span(k,me<en?me:en)):1,lf=rg&&k!==s,rf=rg&&left>nd;let x=shapeCss(e.shape,e.color);
  if(e.shape==='box'||e.shape==='round'){if(lf)x+=';border-left:0';if(rf)x+=';border-right:0'}
  if(e.shape==='round'||e.shape==='rbg'){if(lf)x+=';border-top-left-radius:0;border-bottom-left-radius:0';if(rf)x+=';border-top-right-radius:0;border-bottom-right-radius:0'}
- const w=rg?`;width:calc(${nd}*(100% + 4px) - ${(lf?0:4)+(rf?0:4)}px);margin-left:${lf?-2:2}px;margin-right:0`:'';
+ const w=rg?`;width:calc(${nd}*100% - ${(lf?0:2)+(rf?0:2)}px);margin-left:${lf?0:2}px;margin-right:0`:'';
  const tx=(e.cd?cdTxt(e)+' ':'')+(e.check?(e.done?'☑ ':'☐ '):'')+esc(e.title);
- return`<span class="ch ${e.type} ${e.shape}${rg?' rng':''}${lf?'':' st'}${rf?'':' en'}${e.done&&e.check?' done':''}${low?' low':''}" data-act="ev" data-id="${e.id}" style="${x};--c:${e.color}${w}">${SEGS.includes(e.shape)?`<b class="gp tt">${tx}</b>`:`<span class="tt">${tx}</span>`}</span>`};
+ return`<span class="ch ${e.type} ${e.shape}${rg?' rng':''}${lf?'':' st'}${rf?'':' en'}${e.done&&e.check?' done':''}${low?' low':''}" data-act="ev" data-id="${e.id}" style="${x};--c:${e.color}${w}">${SEGS.includes(e.shape)?`<b class="gp tt">${tx}</b>`:`<span class="tt"><span class="mqi">${tx}</span></span>`}</span>`};
 function decCss(p,col,strong){const c=`color-mix(in srgb,${col||'#8a8c96'} ${strong?60:30}%,transparent)`,l=(d)=>`linear-gradient(${d},transparent calc(50% - .8px),${c} calc(50% - .8px),${c} calc(50% + .8px),transparent calc(50% + .8px))`;
  return({solid:`background:${c}`,
  stripe:`background:repeating-linear-gradient(135deg,${c} 0 2px,transparent 2px 6px)`,
@@ -430,7 +436,9 @@ function draw(){const EI=new Map(S.events.map((e,i)=>[e.id,i]));
    ((k===tk||k===sel)&&l?`<div class="sub">음 ${l.leap?'윤':''}${l.m}.${l.d}</div>`:'')+(hn?`<div class="sub hl2">${hn}</div>`:termOf(d)?`<div class="sub term">${termOf(d)}</div>`:'')+'</div>'+
    evs.filter(e=>e.type!=='dot').map(e=>{const lw=e.type==='low'&&!lowDone;if(lw)lowDone=1;return chipHtml(e,k,lw)}).join('')+(evs.some(e=>e.type==='dot')?`<div class="dots">${evs.filter(e=>e.type==='dot').map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>`:'')+(dc&&dc.stk?`<span class="stk" style="${POSCSS[dc.spos||'br']}">${dc.stk}</span>`:'')+'</div>'}
   h+='</div>'}
- document.getElementById('weeks').innerHTML=h}
+ document.getElementById('weeks').innerHTML=h;requestAnimationFrame(mqInit)}
+// 칸보다 긴 일정 제목은 옆으로 천천히 흘러가며 끝까지 보여 준다
+function mqInit(){document.querySelectorAll('#weeks .ch:not(.long) .mqi').forEach(s=>{const d=s.scrollWidth-s.parentNode.clientWidth;if(d>1){s.style.setProperty('--mq',(-d-2)+'px');s.style.setProperty('--dur',Math.max(5,d/10+4).toFixed(1)+'s');s.classList.add('on')}})}
 // 색상 선택
 const cp=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT))cpT=pk[0];const list=rc?(S.rc||[]):TH[cpT];
  return`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto"><button class="pill ${rc?'on':''}" data-act="cpt" data-v="recent" aria-label="최근 사용" style="flex:none">🕘</button>${pk.map(n=>`<button class="pill ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" style="flex:none;white-space:nowrap">${n}</button>`).join('')}<button class="pill" data-act="pkopen" aria-label="컬러팩 설정" style="flex:none">📌</button></div><div class="row">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span style="color:var(--sub);font-size:12px;padding:6px 2px">최근 사용한 색상이 없습니다</span>'}</div>`};
@@ -814,7 +822,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v12',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v13',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
