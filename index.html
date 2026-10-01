@@ -287,6 +287,11 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .trow{font-size:15px;font-weight:400;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
 .trow.s{padding-left:14.6px;font-size:15.5px;font-weight:600}
 .tpre::placeholder{font-size:12px}
+.tpg .tbk{margin-left:-17px;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}.tpg .tmo{margin-right:-12px;color:#000}
+.tpg .tpt{margin-left:6.4px;font-size:18px;font-weight:600;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+.tnm{font-size:23.5px;font-weight:600;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+.tagi{font-size:12.3px;font-weight:400}.tagi::placeholder{font-weight:400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tpg .tmo{color:var(--ink)}}
 </style></head>
 <body>
 <div class="wrap"><div class="top"><h1 id="ttl" data-act="menu" style="cursor:pointer"></h1></div>
@@ -455,8 +460,8 @@ function sheet(){histSync();const el=document.getElementById('sheet'),on=!!ui,tb
    calT=tic('<rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/>'+[12.5,15.5,18.5].map(y=>[6.5,9.3,12,14.7,17.5].map(x=>dot(x,y,.75)).join('')).join('')),
    titleT=tic('<rect x="2" y="8" width="20" height="8" rx=".5"/><path d="M5 10.5v3"/>'),
    bodyT=tic('<path d="M4 6h16M4 10h12M4 14h16M4 18h16"/>');
-  h=`<div class="pgtop" style="margin:-6px 0 31px"><button data-act="tback" aria-label="뒤로"><svg width="12" height="22" viewBox="0 0 12 22" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 2L2 11l8 9"/></svg></button><span class="tpt">템플릿</span><span class="sp"></span><button data-act="ovp" data-v="tmenu" aria-label="더보기"><svg width="16" height="4" viewBox="0 0 16 4" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/></svg></button></div>
-  <input class="ttl" data-f="name" placeholder="템플릿 이름" maxlength="20" value="${esc(W.name)}"><div style="margin-top:7px"><input class="tagi" data-f="tag" placeholder="태그선택" maxlength="12" style="width:${Math.max(62,((W.tag||'').length+2)*12)}px" value="${esc(W.tag)}"></div>
+  h=`<div class="pgtop tpg" style="margin:-6px 0 31px"><button class="tbk" data-act="tback" aria-label="뒤로"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M9 1L1.5 8 9 15"/></svg></button><span class="tpt">템플릿</span><span class="sp"></span><button class="tmo" data-act="ovp" data-v="tmenu" aria-label="더보기"><svg width="12" height="3" viewBox="0 0 12 3" fill="currentColor"><circle cx="1.5" cy="1.5" r="1.3"/><circle cx="6" cy="1.5" r="1.3"/><circle cx="10.5" cy="1.5" r="1.3"/></svg></button></div>
+  <input class="ttl tnm" data-f="name" placeholder="템플릿 이름" maxlength="20" value="${esc(W.name)}"><div style="margin-top:7px"><input class="tagi" data-f="tag" placeholder="태그선택" maxlength="12" style="width:${Math.max(62,((W.tag||'').length+2)*12)}px" value="${esc(W.tag)}"></div>
   <div class="tsep"></div>
   <button class="trow" data-act="tcp">${lab(pal,'색상')}<i class="sq" style="background:${W.color}"></i></button>${W.cpo?`<div style="padding:2px 0 10px">${cp(W.color,'tcol')}</div>`:''}
   <button class="trow" data-act="ovp" data-v="disp">${lab(calT,'캘린더에 표시방법')}<span class="v">${typeLbl(W.type,W.shape)}</span></button>
