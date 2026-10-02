@@ -328,7 +328,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* 색상 판: 원래 앱 사진 기준 (색 네모 20.5px, 좌 34·우 26 여백 / 컬러팩 타일 31×23) */
 .ovcs{flex-direction:column;gap:34px;padding:20px 0 calc(10px + env(safe-area-inset-bottom,0px))}
 .cps{display:flex;gap:16.3px;padding:0 26px 0 34px;overflow-x:auto;min-height:20.5px;align-items:center}.cps .sw{width:20.5px;height:20.5px;border-radius:2px;border:0;flex:none;margin:0}.cpn{font-size:11px;color:var(--sub)}
-.cpt{display:flex;gap:10px;overflow-x:auto;padding:2px 10px}
+.cpt{display:flex;gap:10px;overflow-x:auto;padding:5px 10px;margin:-3px 0} /* 고른 팩 테두리가 잘리지 않게 위아래 여유 */
 .cpk{flex:none;width:31px;height:23px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);overflow:hidden}.cpk i{display:block}.cpk span,.cpk.pin{grid-column:1/-1;grid-row:1/-1;font-size:12px;display:flex;align-items:center;justify-content:center}
 .cpk.on{outline:1.5px solid var(--ink);outline-offset:1.5px}
 /* 캘린더에 표시방법: 항목 사이를 원래 앱처럼 조금 좁게, 버튼은 흰 바탕에 옅은 그림자 */
@@ -917,7 +917,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v34',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v35',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
