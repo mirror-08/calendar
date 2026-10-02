@@ -838,7 +838,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v26',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v27',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -885,16 +885,12 @@ function ghAct(a){
 setInterval(()=>{if(document.visibilityState==='visible')ghSync()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'||(GH&&(S.ts||0)>(GH.base||0)))ghSync()});
 addEventListener('online',()=>ghSync());
-// 안드로이드 앱 위젯: 지난달~다음달 칸별 일정과 앞으로 60일 일정 목록을 넘겨준다
-function widgetPayload(){const EI=new Map(S.events.map((e,i)=>[e.id,i])),evOn=k=>S.events.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));
- const ev=e=>({id:e.id,t:(e.check?(e.done?'☑ ':'☐ '):'')+e.title,c:e.color,sh:e.shape,ty:e.type,s:e.date,e:e.end||e.date});
- const months=[-1,0,1].map(o=>{const f=new Date(now.getFullYear(),now.getMonth()+o,1,12),st=new Date(f.getFullYear(),f.getMonth(),1-f.getDay(),12),weeks=[];
-  for(let w=0;w<6;w++){const row=[];for(let i=0;i<7;i++){const d=new Date(st.getFullYear(),st.getMonth(),st.getDate()+w*7+i,12),k=key(d),hn=holiday(d),inM=d.getMonth()===f.getMonth();
-    row.push({k,d:d.getDate(),out:!inM,red:!!hn||d.getDay()===0,hol:hn||termOf(d)||'',ev:inM?evOn(k).map(ev):[]})}
-   if(w>=4&&row[0].out)break;weeks.push(row)}
-  return{y:f.getFullYear(),m:f.getMonth()+1,weeks}});
- const list=[];for(let i=0;i<60&&list.length<80;i++){const k=key(at(tk,i));evOn(k).forEach(e=>list.push({k,dow:DOW[at(k).getDay()],...ev(e)}))}
- return{today:tk,gen:Date.now(),months,list}}
+// 안드로이드 앱 위젯: 5주 전부터 12주 뒤까지 날짜별 공휴일과 일정(앱 화면과 같은 순서)을 넘겨준다
+function widgetPayload(){const EI=new Map(S.events.map((e,i)=>[e.id,i])),days={};
+ for(let i=-35;i<=84;i++){const d=at(tk,i),k=key(d),hn=holiday(d);
+  const ev=S.events.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id)).map(e=>{const rp=k>(e.end||e.date);return{id:e.id,t:(e.check?(e.done?'☑ ':'☐ '):'')+e.title,c:e.color,sh:e.shape,ty:e.type,s:rp?k:e.date,e:rp?k:(e.end||e.date)}});
+  days[k]={red:!!hn||d.getDay()===0,hol:hn||'',ev}}
+ return{today:tk,gen:Date.now(),days}}
 let wT=null;function widgetSync(){if(!window.AndroidApp)return;clearTimeout(wT);wT=setTimeout(()=>{try{AndroidApp.setWidgetData(JSON.stringify(widgetPayload()))}catch(e){}},500)}
 // 앱을 켜 둔 채로 날짜가 바뀌었으면 다시 연다
 window.onAppResume=()=>{if(key(new Date())!==tk)location.reload();else widgetSync()};
