@@ -199,7 +199,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tr1 .btn{flex:none;width:70px;height:90px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px;padding:11px;font-size:10.6px;line-height:16px;white-space:normal;text-align:left}
 .tr1 .btn>span:last-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .tdash{background:var(--sheet);border:1px dashed #c9c9cf;box-shadow:0 6px 10px rgba(0,0,0,.07);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.tdash>*{opacity:.6}
-.tdash.drg{box-shadow:0 8px 18px rgba(0,0,0,.28);transform:scale(1.05);position:relative;z-index:3}
+.tdash.drg{box-shadow:0 8px 18px rgba(0,0,0,.28);position:relative;z-index:3}
 .on-sheet .sheet.page{padding-left:25.6px;padding-right:25.6px}
 .tpt{font-size:17px;font-weight:700;margin-left:12px;color:color-mix(in srgb,var(--ink) 85%,var(--bg))}
 .tagi{height:25.6px;padding:0 8px;font-size:11.5px;font-weight:700;color:#7f7f88;border:1px dashed #cfcfd4}.tagi::placeholder{color:#bdbdc2;font-weight:700}
@@ -221,7 +221,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tb{padding:0 6px 0 14px;font-size:calc(var(--fw)*.0233)}.tb.tdash{padding:0 5px 0 13px}
 .tb>span:last-child{overflow-wrap:normal}
 .drow{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.drow.drg{background:var(--sheet);box-shadow:0 6px 16px rgba(0,0,0,.2);transform:scale(1.02);position:relative;z-index:3}
+.drow.drg{background:var(--sheet);box-shadow:0 6px 16px rgba(0,0,0,.2);position:relative;z-index:3}
 :root{--bh:var(--barh,calc(43px + env(safe-area-inset-bottom,0px)))}
 .wrap{padding-bottom:var(--bh)}
 #dayv{bottom:var(--bh)}
@@ -387,6 +387,11 @@ html{-webkit-tap-highlight-color:transparent}body{touch-action:manipulation}
 /* 넘길 때 옆에 미리 그려 두는 달 */
 .wkn{position:absolute;top:0;bottom:0;width:100%;display:flex;flex-direction:column;pointer-events:none}
 .ch .tt{display:block}.mqi{display:inline-block;white-space:nowrap}
+/* v38 원래 앱 사진(10월 화면)에 맞춤: 날짜 숫자는 덜 넓게, 오늘 밑줄은 숫자 바로 아래 가늘게, 요일·일정·공휴일 글자는 조금 굵게, 빨강은 밝은 연분홍빛 */
+.dn b,.cell.sat .dn b{font-size:.9em;transform:scaleX(1.08)}
+.cell.today .dn b{text-underline-offset:1px;text-decoration-thickness:.6px;text-decoration-color:currentColor}
+.dows div,.ch,.sub{font-weight:500}
+.dows div:first-child,.cell.red .dn b,.hl2{color:#f27a71}
 </style></head>
 <body>
 <div class="wrap"><div class="top"><h1 id="ttl" data-act="menu" style="cursor:pointer"></h1></div>
@@ -481,7 +486,7 @@ function holidayBase(d){if(SOL[sk(d)])return SOL[sk(d)];const l=lunar(d);
  const n=lunar(new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,12));if(n&&!n.leap&&n.m==1&&n.d==1)return'설날 연휴';
  return''}
 // 스타일
-function shapeCss(sh,c){const m=p=>`color-mix(in srgb,${c} ${p}%,transparent)`,solid=`background:${c};color:${txt(c)}`,tc=(()=>{const n=parseInt((c||"").slice(1),16);return isNaN(n)||.299*(n>>16)+.587*(n>>8&255)+.114*(n&255)>170?`color:color-mix(in srgb,${c} 65%,#222)`:`color:color-mix(in srgb,${c} 80%,#222)`})(); // 글자는 템플릿 색보다 조금 짙게 (옅은 색은 더 짙게)
+function shapeCss(sh,c){const m=p=>`color-mix(in srgb,${c} ${p}%,transparent)`,solid=`background:${c};color:${txt(c)}`,tc=(()=>{const n=parseInt((c||"").slice(1),16);return isNaN(n)||.299*(n>>16)+.587*(n>>8&255)+.114*(n&255)>170?`color:color-mix(in srgb,${c} 20%,#55555b)`:`color:color-mix(in srgb,${c} 80%,#222)`})(); // 글자는 템플릿 색보다 조금 짙게 (옅은 색은 더 짙게)
  return({cry:tc,fbg:`background:${m(8)};${tc}`,bg:solid+';border-radius:2px',fill:solid,box:`border:1px solid ${c};${tc}`,rbg:solid+';border-radius:999px;text-align:center',round:`border:1px solid ${c};border-radius:999px;text-align:center;${tc}`,
  dia:`background:repeating-linear-gradient(135deg,${m(22)} 0 2px,transparent 2px 6px);${tc}`,dia2:`background:repeating-linear-gradient(135deg,${m(90)} 0 4px,${m(40)} 4px 8px);color:#fff`,
  hl:`background:linear-gradient(transparent 50%,${m(25)} 50%);${tc}`,ul:`border-bottom:1px solid ${c};${tc}`,top:`border-top:1px solid ${c};padding-top:5px;${tc}`})[sh]||''}
@@ -932,7 +937,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v37',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v38',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
