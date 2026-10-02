@@ -311,6 +311,26 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* 아래 메뉴 줄: 원래 앱보다 6px 높아서 낮춤 */
 .bar{padding-top:calc(11*var(--u));padding-bottom:calc(12*var(--u) + env(safe-area-inset-bottom,0px))}
 .dft{padding-bottom:calc(8.5*var(--u))}
+/* 캘린더에 표시방법 창: 원래 앱 사진에 맞춤 (더 작은 창, 고르지 않은 항목은 글자만, 색상은 작은 네모 → 누르면 아래에서 판이 올라옴) */
+.ddlg{width:min(87.5%,385px);padding:26px 20px 11px;color:color-mix(in srgb,var(--ink) 88%,var(--bg))}.ddlg.hid{visibility:hidden}
+.ddtl{font-size:15px;font-weight:500;margin:0 0 30px}
+.ddpv{display:grid;grid-template-columns:repeat(5,59.5px);padding-left:4px;margin-bottom:22px}
+.ddpv>div{min-height:92px!important}.ddpv>div>div:first-child{font-size:11px!important;margin-bottom:17px!important;color:color-mix(in srgb,var(--ink) 70%,var(--bg))}
+.ddlg h3{font-size:11.5px;font-weight:600;margin:0 0 14px}.ddlg .tabs+h3,.ddlg .row+h3{margin-top:26px}
+.ddlg .pill{background:none;color:color-mix(in srgb,var(--ink) 88%,var(--bg));padding:7px 12px;font-size:11px}.ddlg .pill.on{background:#5f5f69;color:#fff}
+.ddcr{margin-top:22px;padding:8px 0 8px 0}.ddcr span{font-size:11.5px;font-weight:600;color:inherit!important}.ddcr i{width:17px;height:17px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.ddlg .dpa{margin-top:30px;gap:9px}.ddlg .dpa button{width:87px;height:34px;padding:0;box-shadow:none;font-size:12.5px;background:color-mix(in srgb,var(--ink) 9%,var(--bg))}
+.ovcb{position:absolute;inset:0}
+.ovcs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:var(--fw);background:var(--sheet);padding:25px 14px calc(19px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column-reverse;gap:16px}
+.ovcs .row{flex-wrap:nowrap;overflow-x:auto;gap:0;margin:0}.ovcs .row:not(.tabs){justify-content:space-between;padding:0 4px}
+.ovcs .sw{width:18px;height:18px;border-radius:2px;border-width:0;flex:none;margin-right:10px}.ovcs .sw:last-child{margin-right:0}.ovcs .sw.on{box-shadow:0 0 0 1.5px var(--sheet),0 0 0 2.5px var(--ink)}
+.ovcs .tabs{gap:6px!important}.ovcs .pill{background:none;color:color-mix(in srgb,var(--ink) 88%,var(--bg));font-size:11px;padding:6px 9px}.ovcs .pill.on{background:#5f5f69;color:#fff}
+/* 달력 일정 글자: 원래 앱처럼 조금 작게, 자간은 살짝 넓게, 색은 짙게, 밑줄과 글자 사이 여백 */
+.ch{font-size:calc(var(--cw)*.104);letter-spacing:.01em;font-weight:500;line-height:1.12;padding-bottom:2px}
+/* 전체 글자색: 원래 앱이 더 짙어서 한 단계 짙게 */
+.dows div,.dn,.sub.term{color:color-mix(in srgb,var(--ink) 92%,var(--bg))}.dows div:first-child{color:var(--sun)}
+.dn b,.cell.sat .dn b{color:color-mix(in srgb,var(--ink) 96%,var(--bg))}.cell.red .dn b{color:var(--sun)}
+.top h1{color:color-mix(in srgb,var(--ink) 90%,var(--bg))}
 /* 휴대폰에서는 기기 뒤로가기로 닫으니 하루 일정의 닫기(✕) 버튼을 숨긴다 */
 @media (pointer:coarse){.dx{display:none}}
 /* 달력을 두 번 눌러도 글자 선택(파란색)·누름 강조·확대가 생기지 않게 */
@@ -434,7 +454,7 @@ function holidayBase(d){if(SOL[sk(d)])return SOL[sk(d)];const l=lunar(d);
  const n=lunar(new Date(d.getFullYear(),d.getMonth(),d.getDate()+1,12));if(n&&!n.leap&&n.m==1&&n.d==1)return'설날 연휴';
  return''}
 // 스타일
-function shapeCss(sh,c){const m=p=>`color-mix(in srgb,${c} ${p}%,transparent)`,solid=`background:${c};color:${txt(c)}`,tc=(()=>{const n=parseInt((c||"").slice(1),16);return isNaN(n)||.299*(n>>16)+.587*(n>>8&255)+.114*(n&255)>170?`color:color-mix(in srgb,${c} 75%,#222)`:`color:${c}`})(); // 원래 앱처럼 글자도 템플릿 색 그대로 (아주 옅은 색만 진하게)
+function shapeCss(sh,c){const m=p=>`color-mix(in srgb,${c} ${p}%,transparent)`,solid=`background:${c};color:${txt(c)}`,tc=(()=>{const n=parseInt((c||"").slice(1),16);return isNaN(n)||.299*(n>>16)+.587*(n>>8&255)+.114*(n&255)>170?`color:color-mix(in srgb,${c} 65%,#222)`:`color:color-mix(in srgb,${c} 80%,#222)`})(); // 글자는 템플릿 색보다 조금 짙게 (옅은 색은 더 짙게)
  return({cry:tc,fbg:`background:${m(8)};${tc}`,bg:solid+';border-radius:2px',fill:solid,box:`border:1px solid ${c};${tc}`,rbg:solid+';border-radius:999px;text-align:center',round:`border:1px solid ${c};border-radius:999px;text-align:center;${tc}`,
  dia:`background:repeating-linear-gradient(135deg,${m(22)} 0 2px,transparent 2px 6px);${tc}`,dia2:`background:repeating-linear-gradient(135deg,${m(90)} 0 4px,${m(40)} 4px 8px);color:#fff`,
  hl:`background:linear-gradient(transparent 50%,${m(25)} 50%);${tc}`,ul:`border-bottom:1px solid ${c};${tc}`,top:`border-top:1px solid ${c};padding-top:5px;${tc}`})[sh]||''}
@@ -587,7 +607,9 @@ function ovDraw(){histSync();const _o=document.getElementById('ov');_o.style.bac
  if(ov==='disp'){const mk=(t,d,e2)=>({title:W.title||'제목',color:DD.color,type:DD.type,shape:DD.shape,date:'2026-03-'+d,end:'2026-03-'+e2,id:t});const A=mk('a','02','02'),B=mk('b','04','05');
   const cells=[2,3,4,5,6].map(d=>{const k='2026-03-0'+d;return`<div style="min-height:100px;display:flex;flex-direction:column;gap:2px;position:relative;z-index:${8-d}"><div style="font-size:14px;padding:0 4px;margin-bottom:6px">${d-1}</div>${DD.type==='dot'?(d==4?`<div class="dots" style="padding-top:8px"><i style="background:${DD.color}"></i><i style="background:${DD.color}"></i></div>`:''):(d==2?chipHtml(A,k,0):'')+(d==4||d==5?chipHtml(B,k,0):'')}</div>`}).join('');
   const row=(o,cur,act)=>`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto;gap:8px">${Object.entries(o).map(([k,v])=>`<button class="pill ${k===cur?'on':''}" style="white-space:nowrap" data-act="${act}" data-v="${k}">${v}</button>`).join('')}</div>`;
-  h=`<div class="ovd" data-act="noop"><div style="font-size:14px;margin:2px 0 12px">🗓 캘린더에 표시방법</div><div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1.5px dashed var(--line);padding-bottom:10px;margin-bottom:12px">${cells}</div>${ui==='ev'?`<h3>템플릿</h3><div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto;gap:8px">${S.tpls.map(t=>`<button class="pill ${DD.tid===t.id||(!DD.tid&&t.color===DD.color&&t.type===DD.type&&t.shape===DD.shape)?'on':''}" style="white-space:nowrap;display:flex;align-items:center;gap:5px" data-act="ddtpl" data-v="${t.id}"><i style="width:8px;height:8px;border-radius:2px;background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>`:''}<h3>타입</h3>${row(TYPES,DD.type,'ddt')}${DD.type==='dot'?'':`<h3>모양</h3>${row(SHAPES,DD.shape,'dds')}`}<button class="rowv" data-act="ddcp"><span>색상</span><i style="width:30px;height:30px;border-radius:4px;background:${DD.color}"></i></button>${DD.cp?cp(DD.color,'ddc'):''}${(n=>n?`<button class="rowv" data-act="ddall"><span>${ui==='tpl'?'이 템플릿을 쓰는 일정':'같은 템플릿 일정'} ${n}개도 함께 바꾸기</span><span style="font-size:15px">${DD.all?'☑':'☐'}</span></button>`:'')(sameTpl().length)}<div class="dpa"><button data-act="ovx">취소</button><button data-act="ddok">확인</button></div></div>`}
+  h=`<div class="ovd ddlg${DD.cp?' hid':''}" data-act="noop"><div class="ddtl">🗓 캘린더에 표시방법</div><div class="ddpv">${cells}</div>${ui==='ev'?`<h3>템플릿</h3><div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto;gap:8px">${S.tpls.map(t=>`<button class="pill ${DD.tid===t.id||(!DD.tid&&t.color===DD.color&&t.type===DD.type&&t.shape===DD.shape)?'on':''}" style="white-space:nowrap;display:flex;align-items:center;gap:5px" data-act="ddtpl" data-v="${t.id}"><i style="width:8px;height:8px;border-radius:2px;background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>`:''}<h3>타입</h3>${row(TYPES,DD.type,'ddt')}${DD.type==='dot'?'':`<h3>모양</h3>${row(SHAPES,DD.shape,'dds')}`}<button class="rowv ddcr" data-act="ddcp"><span>색상</span><i style="background:${DD.color}"></i></button>${(n=>n?`<button class="rowv" data-act="ddall"><span>${ui==='tpl'?'이 템플릿을 쓰는 일정':'같은 템플릿 일정'} ${n}개도 함께 바꾸기</span><span style="font-size:15px">${DD.all?'☑':'☐'}</span></button>`:'')(sameTpl().length)}<div class="dpa"><button data-act="ovx">취소</button><button data-act="ddok">확인</button></div></div>`+
+  // 원래 앱처럼 색상은 화면 아래에서 올라오는 판에서 고른다 (위쪽 어두운 곳을 누르면 닫힘)
+  (DD.cp?`<div class="ovcb" data-act="ddcp"></div><div class="ovcs" data-act="noop">${cp(DD.color,'ddc')}</div>`:'')}
  el.innerHTML=h;if(el.querySelectorAll)el.querySelectorAll('.tabs').forEach((n,i)=>{n.scrollLeft=old[i]||0})}
 function tplW(t){const tp=t.tp||'',bp=t.bp||'';return{...t,tag:t.tag||'',tu:t.tu!==false,bu:t.bu!==false,tp,bp,tc:t.tc==null?tp.length:t.tc,bc:t.bc==null?0:t.bc,tmu:!!t.tmu,tmv:t.tmv||'',alu:!!t.alu,alv:t.alv||'0',check:!!t.check}}
 function saveT(){const p={...W};delete p.isNew;delete p.cpo;p.name=p.name.trim();if(W.isNew&&!p.name){ui='main';ov='';return R()}if(!p.name)p.name='새 템플릿';
@@ -743,7 +765,7 @@ const a=t.dataset.act,v=t.dataset.v,id=t.dataset.id;
  if(a==='exp'){ov='exp';return ovDraw()}
  if(a==='cpy'){cpyText(expText());const lb=t.querySelector&&t.querySelector('span:last-child');if(lb)lb.textContent='복사됨';return}
  if(a==='shr'){if(navigator.share)navigator.share({text:expText()}).catch(()=>{});else cpyText(expText());return}
- if(a==='ddt'){DD.type=v;return ovDraw()}if(a==='dds'){DD.shape=v;return ovDraw()}if(a==='ddc'){DD.color=v;rcAdd(v);return ovDraw()}if(a==='ddcp'){DD.cp=!DD.cp;return ovDraw()}
+ if(a==='ddt'){DD.type=v;return ovDraw()}if(a==='dds'){DD.shape=v;return ovDraw()}if(a==='ddc'){DD.color=v;DD.cp=0;rcAdd(v);return ovDraw()}if(a==='ddcp'){DD.cp=!DD.cp;return ovDraw()}
  if(a==='ddok'){const same=sameTpl();W.type=DD.type;W.shape=DD.shape;W.color=DD.color;if(ui==='ev'&&DD.tid)W.tid=DD.tid;
   if(DD.all&&same.length){same.forEach(e=>{e.type=DD.type;e.shape=DD.shape;e.color=DD.color;if(ui==='tpl')e.tid=W.id;else if(DD.tid)e.tid=DD.tid});save()} // 같은 템플릿 일정 모두 바꾸기
   ov='';return R()}
@@ -878,7 +900,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v32',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v33',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
