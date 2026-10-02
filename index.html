@@ -2,8 +2,7 @@
 <html lang="ko"><head><meta charset="utf-8"><title>나의 달력</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17171c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -835,7 +834,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v24',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v23',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
