@@ -836,7 +836,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v16',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v17',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -888,7 +888,7 @@ let INST=null,INSTMSG='';
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();INST=e;if(ui==='menu')sheet()});
 addEventListener('appinstalled',()=>{INST=null;INSTMSG='설치했어요. 홈 화면이나 앱 목록에서 "나의 달력"을 찾아 열어 주세요.';if(ui==='menu')sheet()});
 function instHtml(){const sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone;const sub='class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5"';
- return '<h3>앱 설치</h3>'+(sa?`<div ${sub}>설치된 앱으로 실행 중이에요.</div>`:INST?`<button class="btn" data-act="inst">앱 설치하기</button>`:`<div ${sub}>${INSTMSG||'브라우저 메뉴(⋮)에서 "앱 설치" 또는 "홈 화면에 추가"를 눌러 주세요. 이미 설치했다면 앱 목록에서 "나의 달력"을 찾아보세요.'}</div>`)}
+ return '<h3>앱 설치</h3>'+(sa?`<div ${sub}>설치된 앱으로 실행 중이에요.</div>`:INST?`<button class="btn" data-act="inst">앱 설치하기</button>`:`<div ${sub}>${INSTMSG||'크롬 메뉴(⋮) → "설치 및 바로가기 만들기" → "설치"를 눌러 주세요. (바로가기는 크롬 탭으로 열려요.) 이미 설치했다면 앱 목록에서 "나의 달력"을 찾아보세요.'}</div>`)}
 R();syncInit();ghSync();
 (()=>{const bar=document.getElementById('bar'),f=()=>{if(bar&&bar.offsetHeight)document.documentElement.style.setProperty('--barh',bar.offsetHeight+'px')};f();setTimeout(f,300);if(typeof addEventListener==='function')addEventListener('resize',f)})();
 (()=>{const wk=document.getElementById('weeks');if(!wk.addEventListener)return;let x0=0,y0=0;
