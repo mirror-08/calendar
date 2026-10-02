@@ -611,7 +611,7 @@ const CHL='<svg width="4" height="8" viewBox="0 0 4 8" fill="none" stroke="curre
 const todayBtn=side=>`<button class="tdbn ${side==='r'?'rr':''}" data-act="gotoday">${side==='l'?CHL:''}<span>오늘</span>${side==='r'?CHR:''}</button>`;
 function tdbDraw(){const el=document.getElementById('tdb');let side='';if(!dayOn){const cm=tk.slice(0,7),vm=key(view).slice(0,7);side=vm<cm?'r':vm>cm?'l':(sel>tk?'l':sel<tk?'r':'')}
  el.style.display=side?'block':'none';el.className=side;el.innerHTML=side?todayBtn(side):''}
-function schedPush(){ghSched();if(!SY)return;clearTimeout(pushT);pushT=setTimeout(pushAll,1200)}
+function schedPush(){ghSched();try{widgetSync()}catch(e){}if(!SY)return;clearTimeout(pushT);pushT=setTimeout(pushAll,1200)}
 async function pushAll(){if(!SY)return;if(SY.busy){SY.again=true;return}SY.busy=true;SYS='동기화 중…';
  try{const snap=JSON.parse(JSON.stringify(S)),evs=snap.events||[];delete snap.events;const ch=[];let cur=[],sz=0;
   for(const e of evs){const l=JSON.stringify(e).length;if(sz+l>180000&&cur.length){ch.push(cur);cur=[];sz=0}cur.push(e);sz+=l}ch.push(cur);
@@ -785,6 +785,7 @@ function bkHtml(){const lb=lsGet('my-calendar-lastbk');
 function bkup(){const d=new Date(),name='나의달력-백업-'+key(d)+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
  const f=new File([JSON.stringify({app:'my-calendar',v:1,at:d.getTime(),data:S})],name,{type:'application/json'});
  const done=()=>{lsSet('my-calendar-lastbk',String(d.getTime()));BKMSG='백업 파일을 저장했어요: '+name;sheet()};
+ if(window.AndroidApp){if(AndroidApp.saveFile(name,JSON.stringify({app:'my-calendar',v:1,at:d.getTime(),data:S})))done();else{BKMSG='백업 파일을 저장하지 못했어요.';sheet()}return} // 안드로이드 앱: 다운로드 폴더에 저장
  const ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  if(ios&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).then(done,()=>{});return}
  try{const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);done()}
@@ -837,7 +838,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v25',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v26',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -851,7 +852,7 @@ async function ghPut(){const b={message:'sync',content:b64e(JSON.stringify({app:
  const r=await ghApi('/contents/data.json',{method:'PUT',body:JSON.stringify(b)});if(!r.ok)throw r.status;
  GH.sha=(await r.json()).content.sha;GH.base=S.ts||0;GHS.etag='';ghSave()}
 function ghApply(d){if(S.events.length)lsSet(GHP,JSON.stringify({at:Date.now(),data:S})); // 서버 기록으로 바뀌기 직전 기록을 보관
- S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);try{localStorage.setItem('my-calendar-v1',JSON.stringify(S))}catch(e){}GH.base=S.ts||0;ghSave();R()}
+ S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);try{localStorage.setItem('my-calendar-v1',JSON.stringify(S))}catch(e){}GH.base=S.ts||0;ghSave();R();widgetSync()}
 const ghErr=e=>e===401?'토큰이 올바르지 않아요. 토큰을 다시 복사해서 붙여넣어 주세요.':e===403?'토큰에 쓰기 권한이 없어요. 토큰 설정에서 Contents를 "Read and write"로 바꿔 주세요.':e===404?'이 토큰으로는 저장소('+(GH&&GH.repo||'')+')에 접근할 수 없어요. 저장소 이름과, 토큰의 Repository access에 my-calendar-data가 선택돼 있는지 확인해 주세요.':'연결하지 못했어요. 잠시 후 다시 시도할게요.';
 async function ghSync(){if(!GH||!GH.token||GHS.busy||GHS.ask||ui==='ev'||ui==='tpl')return;GHS.busy=1;
  try{const dirty=(S.ts||0)>(GH.base||0),g=await ghGet();
@@ -884,7 +885,20 @@ function ghAct(a){
 setInterval(()=>{if(document.visibilityState==='visible')ghSync()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'||(GH&&(S.ts||0)>(GH.base||0)))ghSync()});
 addEventListener('online',()=>ghSync());
-R();syncInit();ghSync();
+// 안드로이드 앱 위젯: 지난달~다음달 칸별 일정과 앞으로 60일 일정 목록을 넘겨준다
+function widgetPayload(){const EI=new Map(S.events.map((e,i)=>[e.id,i])),evOn=k=>S.events.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));
+ const ev=e=>({id:e.id,t:(e.check?(e.done?'☑ ':'☐ '):'')+e.title,c:e.color,sh:e.shape,ty:e.type,s:e.date,e:e.end||e.date});
+ const months=[-1,0,1].map(o=>{const f=new Date(now.getFullYear(),now.getMonth()+o,1,12),st=new Date(f.getFullYear(),f.getMonth(),1-f.getDay(),12),weeks=[];
+  for(let w=0;w<6;w++){const row=[];for(let i=0;i<7;i++){const d=new Date(st.getFullYear(),st.getMonth(),st.getDate()+w*7+i,12),k=key(d),hn=holiday(d),inM=d.getMonth()===f.getMonth();
+    row.push({k,d:d.getDate(),out:!inM,red:!!hn||d.getDay()===0,hol:hn||termOf(d)||'',ev:inM?evOn(k).map(ev):[]})}
+   if(w>=4&&row[0].out)break;weeks.push(row)}
+  return{y:f.getFullYear(),m:f.getMonth()+1,weeks}});
+ const list=[];for(let i=0;i<60&&list.length<80;i++){const k=key(at(tk,i));evOn(k).forEach(e=>list.push({k,dow:DOW[at(k).getDay()],...ev(e)}))}
+ return{today:tk,gen:Date.now(),months,list}}
+let wT=null;function widgetSync(){if(!window.AndroidApp)return;clearTimeout(wT);wT=setTimeout(()=>{try{AndroidApp.setWidgetData(JSON.stringify(widgetPayload()))}catch(e){}},500)}
+// 앱을 켜 둔 채로 날짜가 바뀌었으면 다시 연다
+window.onAppResume=()=>{if(key(new Date())!==tk)location.reload();else widgetSync()};
+R();syncInit();ghSync();widgetSync();
 (()=>{const bar=document.getElementById('bar'),f=()=>{if(bar&&bar.offsetHeight)document.documentElement.style.setProperty('--barh',bar.offsetHeight+'px')};f();setTimeout(f,300);if(typeof addEventListener==='function')addEventListener('resize',f)})();
 (()=>{const wk=document.getElementById('weeks');if(!wk.addEventListener)return;let x0=0,y0=0;
  wk.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
