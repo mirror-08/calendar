@@ -297,6 +297,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .page .prow,.page .tmb{color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
 /* 휴대폰에서는 기기 뒤로가기로 닫으니 하루 일정의 닫기(✕) 버튼을 숨긴다 */
 @media (pointer:coarse){.dx{display:none}}
+/* 달력을 두 번 눌러도 글자 선택(파란색)·누름 강조·확대가 생기지 않게 */
+html{-webkit-tap-highlight-color:transparent}body{touch-action:manipulation}
+.top,.dows,#weeks,.bar,#dayv .dh{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* 원래 앱처럼 일정이 칸 거의 끝까지 차게: 칸 좌우 여백은 날짜 글자에만 */
 .wrap{padding-top:4px}.cell{padding-left:0;padding-right:0}.cell .hd{padding:0 2px}
 .ch{margin:0 1px;padding:0 2px;font-size:calc(var(--cw)*.1065);font-weight:500} /* 원래 앱처럼 "[세중] 뮤지컬 '광화"에서 끊기는 크기 */
@@ -834,7 +837,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v23',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v25',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
