@@ -431,8 +431,8 @@ function draw(){const EI=new Map(S.events.map((e,i)=>[e.id,i]));
   for(let i=0;i<7;i++){const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+i,12),k=key(d),hn=holiday(d),l=lunar(d),dc=S.dec[k];
    const evs=S.events.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));let lowDone=0;
    if(d.getMonth()!==view.getMonth()){h+='<div class="cell out"></div>';continue} // 이번 달이 아닌 날은 비워 둔다
-   h+=`<div class="cell ${k===tk?'today ':''}${k===sel?'sel ':''}${hn||d.getDay()==0?'red':d.getDay()==6?'sat':''}" data-act="day" data-k="${k}">${layer(dc,(k===tk||k===sel)?'calc(var(--cw)*.61)':'calc(var(--cw)*.42)')}<div class="hd"><div class="dn"><b>${pad(d.getDate())}</b>${k===tk||k===sel?`<small>${dd(k)}</small>`:''}</div>`+
-   ((k===tk||k===sel)&&l?`<div class="sub">음 ${l.leap?'윤':''}${l.m}.${l.d}</div>`:'')+(hn?`<div class="sub hl2">${hn}</div>`:termOf(d)?`<div class="sub term">${termOf(d)}</div>`:'')+'</div>'+
+   h+=`<div class="cell ${k===tk?'today ':''}${k===sel?'sel ':''}${hn||d.getDay()==0?'red':d.getDay()==6?'sat':''}" data-act="day" data-k="${k}">${layer(dc,k===sel?'calc(var(--cw)*.61)':'calc(var(--cw)*.42)')}<div class="hd"><div class="dn"><b>${pad(d.getDate())}</b>${k===sel?`<small>${dd(k)}</small>`:''}</div>`+
+   (k===sel&&l?`<div class="sub">음 ${l.leap?'윤':''}${l.m}.${l.d}</div>`:'')+(hn?`<div class="sub hl2">${hn}</div>`:termOf(d)?`<div class="sub term">${termOf(d)}</div>`:'')+'</div>'+
    evs.filter(e=>e.type!=='dot').map(e=>{const lw=e.type==='low'&&!lowDone;if(lw)lowDone=1;return chipHtml(e,k,lw)}).join('')+(evs.some(e=>e.type==='dot')?`<div class="dots">${evs.filter(e=>e.type==='dot').map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>`:'')+(dc&&dc.stk?`<span class="stk" style="${POSCSS[dc.spos||'br']}">${dc.stk}</span>`:'')+'</div>'}
   h+='</div>'}
  document.getElementById('weeks').innerHTML=h;requestAnimationFrame(mqInit)}
@@ -835,7 +835,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v21',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v22',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
