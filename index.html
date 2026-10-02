@@ -295,6 +295,22 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .epg .lab{font-size:11.2px;gap:21px;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}.epg .lab i{width:13px;height:13px;border-radius:2px}
 .esep{border-bottom:1px dashed #cfcfd4;margin:19px 0 17px}.pgtop.epg{margin-bottom:32px}.epg .lab{padding-right:4px}.page .bdy{border-bottom:1px dashed #cfcfd4}
 .page .prow,.page .tmb{color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+/* 일정 추가 화면: 원래 앱 사진에 맞춤 (날짜·더 많은 정보·템플릿 이름은 조금 굵게, 시간설정 버튼은 좁고 진한 회색으로 오른쪽 끝에) */
+.epg .lab{font-weight:600}
+.page .prow{font-weight:600;padding-right:0}
+.page .tmb{font-weight:500;background:color-mix(in srgb,var(--ink) 10%,var(--bg));padding:0 6px 0 6.5px;gap:7.5px}
+.page .bdy{font-size:14.9px;padding-left:2.7px}
+/* 하루 일정 화면: 원래 앱 사진에 맞춤 */
+.dbig{color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+.dh{gap:3.5px}.dmeta{padding-left:13px;font-size:13.4px;font-weight:500;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}.dmeta b{margin-left:-13px;font-weight:600}
+.dsep{margin:37.5px 0 7.6px}
+.drow{padding:17.5px 0 17.5px 8px}.dsw{border-radius:.5px}
+.dt{font-size:12.9px;font-weight:600;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+.ds{font-size:13px;font-weight:500;color:color-mix(in srgb,var(--ink) 72%,var(--bg))}
+.dm{padding-top:4.5px}
+/* 아래 메뉴 줄: 원래 앱보다 6px 높아서 낮춤 */
+.bar{padding-top:calc(11*var(--u));padding-bottom:calc(12*var(--u) + env(safe-area-inset-bottom,0px))}
+.dft{padding-bottom:calc(8.5*var(--u))}
 /* 휴대폰에서는 기기 뒤로가기로 닫으니 하루 일정의 닫기(✕) 버튼을 숨긴다 */
 @media (pointer:coarse){.dx{display:none}}
 /* 달력을 두 번 눌러도 글자 선택(파란색)·누름 강조·확대가 생기지 않게 */
@@ -862,7 +878,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v31',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v32',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
