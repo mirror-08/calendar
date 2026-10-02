@@ -317,7 +317,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .ddpv{display:grid;grid-template-columns:repeat(5,59.5px);padding-left:4px;margin-bottom:22px}
 .ddpv>div{min-height:92px!important}.ddpv>div>div:first-child{font-size:11px!important;margin-bottom:17px!important;color:color-mix(in srgb,var(--ink) 70%,var(--bg))}
 .ddlg h3{font-size:11.5px;font-weight:600;margin:0 0 14px}.ddlg .tabs+h3,.ddlg .row+h3{margin-top:26px}
-.ddlg .pill{background:none;color:color-mix(in srgb,var(--ink) 88%,var(--bg));padding:7px 12px;font-size:11px}.ddlg .pill.on{background:#5f5f69;color:#fff}
+/* 원래 앱: 고른 항목은 짙은 네모+굵은 흰 글씨, 안 고른 항목은 아주 옅은 네모+연한 회색 글씨 */
+.ddlg .pill{background:color-mix(in srgb,var(--ink) 3.5%,var(--bg));color:color-mix(in srgb,var(--ink) 33%,var(--bg));padding:6px 12px;font-size:11px;font-weight:400}.ddlg .pill.on{background:#616066;color:#fff;font-weight:700}
+.ddlg .tabs{gap:10.3px!important}
 .ddcr{margin-top:22px;padding:8px 0 8px 0}.ddcr span{font-size:11.5px;font-weight:600;color:inherit!important}.ddcr i{width:17px;height:17px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .ddlg .dpa{margin-top:30px;gap:9px}.ddlg .dpa button{width:87px;height:34px;padding:0;box-shadow:none;font-size:12.5px;background:color-mix(in srgb,var(--ink) 9%,var(--bg))}
 .ovcb{position:absolute;inset:0}
@@ -337,6 +339,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .ddlg .dpa{gap:27px;margin-right:13px}.ddlg .dpa button{background:var(--sheet);box-shadow:0 1.5px 4px rgba(0,0,0,.14);color:color-mix(in srgb,var(--ink) 92%,var(--bg))}
 /* 하루 일정 화면 글자색: 원래 앱처럼 짙게 */
 .dbig,.dmeta{color:color-mix(in srgb,var(--ink) 92%,var(--bg))}.dt{color:color-mix(in srgb,var(--ink) 94%,var(--bg))}.ds{color:color-mix(in srgb,var(--ink) 84%,var(--bg))}
+/* 원래 앱: 고른 항목은 짙은 네모+굵은 흰 글씨, 안 고른 항목은 아주 옅은 네모+연한 회색 글씨 (10px 간격) */
+.ddlg .pill{background:color-mix(in srgb,var(--ink) 3.5%,var(--bg));color:color-mix(in srgb,var(--ink) 33%,var(--bg));padding:6px 12px;font-size:11px;font-weight:400}.ddlg .pill.on{background:#616066;color:#fff;font-weight:700}
+.ddlg .tabs{gap:10.3px!important}
+/* 색상 네모 크기: 원래 앱 사진에서 잰 값 (창 안 13.7px, 색 판 18px, 컬러팩 타일 31.5×21) */
+.ddcr i{width:13.7px;height:13.7px}
+.ovcs{gap:34px;padding-top:22px}
+.cps{gap:18.9px;padding:0 31px;min-height:18px}.cps .sw{width:18px;height:18px}
+.cpt{gap:13.7px}.cpk{width:31.5px;height:21px}
 /* 달력 일정 글자: 원래 앱처럼 조금 작게, 자간은 살짝 넓게, 색은 짙게, 밑줄과 글자 사이 여백 */
 .ch{font-size:calc(var(--cw)*.104);letter-spacing:.01em;font-weight:500;line-height:1.12;padding-bottom:2px}
 /* 전체 글자색: 원래 앱이 더 짙어서 한 단계 짙게 */
@@ -917,7 +927,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v35',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v36',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
