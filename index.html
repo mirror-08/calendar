@@ -499,7 +499,7 @@ function sheet(){histSync();const el=document.getElementById('sheet'),on=!!ui,tb
   ${row(IC.clock,'시간','tmu')}${W.tmu?`<div class="trow s"><span>기본 시간</span><input class="fld" type="time" data-f="tmv" value="${W.tmv||''}" style="width:130px;margin:0"></div>`:''}
   ${row(IC.bell,'알림','alu')}${W.alu?`<div class="trow s"><span>기본 알림</span><select class="fld" data-f="alv" style="width:130px;margin:0">${[['0','정시'],['10','10분 전'],['60','1시간 전'],['1440','하루 전']].map(x=>`<option value="${x[0]}" ${W.alv===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>`:''}
   ${row(IC.chk,'체크박스','check')}`}
- if(ui==='menu')h+=`<h2>메뉴</h2><div class="g g2"><button class="btn" data-act="today">오늘로 이동</button><label class="btn">월 이동<input type="month" id="mp" value="${view.getFullYear()}-${pad(view.getMonth()+1)}" style="background:none;border:0"></label></div>${bkHtml()}${ghHtml()}${instHtml()}${SY?'<h3>컴퓨터·휴대폰 동기화</h3><div class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5">같은 Claude 계정으로 이 페이지를 열면 일정이 자동으로 같아져요.<br>상태: '+SYS+'</div><button class="btn" data-act="syncnow">지금 동기화</button>':''}`;
+ if(ui==='menu')h+=`<h2>메뉴</h2><div class="g g2"><button class="btn" data-act="today">오늘로 이동</button><label class="btn">월 이동<input type="month" id="mp" value="${view.getFullYear()}-${pad(view.getMonth()+1)}" style="background:none;border:0"></label></div>${bkHtml()}${ghHtml()}${SY?'<h3>컴퓨터·휴대폰 동기화</h3><div class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5">같은 Claude 계정으로 이 페이지를 열면 일정이 자동으로 같아져요.<br>상태: '+SYS+'</div><button class="btn" data-act="syncnow">지금 동기화</button>':''}`;
  if(ui==='search'){const r=q?S.events.filter(e=>(e.title+' '+(e.body||'')).includes(q)).sort((a,b)=>a.date.localeCompare(b.date)):[];h+=`<h2>검색</h2><input class="fld" id="sq" placeholder="일정·메모 검색" value="${esc(q)}">${r.map(e=>`<button class="res" data-act="go" data-id="${e.id}">${esc(e.title)} <small>${e.date}</small></button>`).join('')||(q?'<div class="sub">결과가 없어요.</div>':'')}`}
  el.innerHTML=h;{if(el.querySelectorAll)el.querySelectorAll('.tabs').forEach((n,i)=>{n.scrollLeft=tbs[i]||0});el.scrollTop=stp;const sb1=el.querySelector('.sbody');if(sb1)sb1.scrollTop=sbt}if(ui==='search'){const i=el.querySelector('#sq');i.focus();i.setSelectionRange(99,99)}}
 const md=k=>{const d=at(k);return(d.getMonth()+1)+'월 '+d.getDate()+'일 '+DOW[d.getDay()]+'요일'};
@@ -734,7 +734,6 @@ const a=t.dataset.act,v=t.dataset.v,id=t.dataset.id;
  if(a==='sfcp'){SF.color=v;ov='';ovDraw();return schDraw()}
  if(a==='menu'){ui=a;BKMSG='';RST=null;return R()}
  if(a==='bkup')return bkup();
- if(a==='inst'){if(INST){INST.prompt();INST.userChoice.then(c=>{if(c.outcome!=='accepted')INSTMSG='설치를 취소했어요.';INST=null;sheet()})}return}
  if(a.slice(0,2)==='gh')return ghAct(a);
  if(a==='rstno'){RST=null;return sheet()}
  if(a==='rstok')return rstApply();
@@ -836,7 +835,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v20',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v21',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -883,12 +882,6 @@ function ghAct(a){
 setInterval(()=>{if(document.visibilityState==='visible')ghSync()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'||(GH&&(S.ts||0)>(GH.base||0)))ghSync()});
 addEventListener('online',()=>ghSync());
-// 앱 설치: 크롬이 설치를 허용하면 메뉴에 설치 버튼을 보여 준다
-let INST=null,INSTMSG='';
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();INST=e;if(ui==='menu')sheet()});
-addEventListener('appinstalled',()=>{INST=null;INSTMSG='설치했어요. 홈 화면이나 앱 목록에서 "나의 달력"을 찾아 열어 주세요.';if(ui==='menu')sheet()});
-function instHtml(){const sa=matchMedia('(display-mode: standalone)').matches||navigator.standalone;const sub='class="sub" style="padding:0 2px 10px;font-size:11px;line-height:1.5"';
- return '<h3>앱 설치</h3>'+(sa?`<div ${sub}>설치된 앱으로 실행 중이에요.</div>`:INST?`<button class="btn" data-act="inst">앱 설치하기</button>`:`<div ${sub}>${INSTMSG||'크롬 메뉴(⋮) → "설치 및 바로가기 만들기" → "설치"를 눌러 주세요. (바로가기는 크롬 탭으로 열려요.) 이미 설치했다면 앱 목록에서 "나의 달력"을 찾아보세요.'}</div>`)}
 R();syncInit();ghSync();
 (()=>{const bar=document.getElementById('bar'),f=()=>{if(bar&&bar.offsetHeight)document.documentElement.style.setProperty('--barh',bar.offsetHeight+'px')};f();setTimeout(f,300);if(typeof addEventListener==='function')addEventListener('resize',f)})();
 (()=>{const wk=document.getElementById('weeks');if(!wk.addEventListener)return;let x0=0,y0=0;
