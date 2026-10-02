@@ -303,8 +303,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .ch{margin:0 1px;padding:0 2px;font-size:calc(var(--cw)*.1065);font-weight:500} /* 원래 앱처럼 "[세중] 뮤지컬 '광화"에서 끊기는 크기 */
 .sub{font-size:max(6.8px,calc(var(--cw)*.131))}
 .ch .tt{display:block}.mqi{display:inline-block;white-space:nowrap}
-.mqi.on{animation:mq var(--dur) ease-in-out infinite alternate}
-@keyframes mq{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(var(--mq))}}
 </style></head>
 <body>
 <div class="wrap"><div class="top"><h1 id="ttl" data-act="menu" style="cursor:pointer"></h1></div>
@@ -440,7 +438,12 @@ function draw(){const EI=new Map(S.events.map((e,i)=>[e.id,i]));
  document.getElementById('weeks').innerHTML=h;requestAnimationFrame(mqInit)}
 // 누른(선택한) 날짜 칸의 긴 일정 제목만 옆으로 흘러가며 끝까지 보여 준다 (글꼴이 늦게 받아지거나 화면 크기가 바뀌면 다시 잰다)
 try{document.fonts.ready.then(()=>mqInit());addEventListener('resize',()=>requestAnimationFrame(mqInit))}catch(e){}
-function mqInit(){document.querySelectorAll('#weeks .mqi.on').forEach(s=>s.classList.remove('on'));document.querySelectorAll('#weeks .cell.sel .ch:not(.long) .mqi').forEach(s=>{const d=s.scrollWidth-s.parentNode.clientWidth;if(d>1){s.style.setProperty('--mq',(-d-2)+'px');s.style.setProperty('--dur',Math.max(5,d/10+4).toFixed(1)+'s');s.classList.add('on')}})}
+function mqInit(){document.querySelectorAll('#weeks .mqi[data-t]').forEach(s=>{s.getAnimations().forEach(a=>a.cancel());s.textContent=s.dataset.t;delete s.dataset.t});
+ document.querySelectorAll('#weeks .cell.sel .ch:not(.long) .mqi').forEach(s=>{const w=s.scrollWidth,box=s.parentNode.clientWidth;if(w-box<=1)return;
+  // 원래 앱처럼: 잠깐 멈췄다가 한 방향으로 흐르고, 빈칸 뒤에 같은 제목이 이어져 처음 자리로 돌아온다
+  const gap=Math.round(box*.32),dist=w+gap,move=dist/30*1000,pause=1000,dur=move+pause,t=s.textContent;
+  s.dataset.t=t;s.innerHTML=esc(t)+'<span style="display:inline-block;width:'+gap+'px"></span>'+esc(t);
+  s.animate([{transform:'translateX(0)',offset:0},{transform:'translateX(0)',offset:pause/dur},{transform:'translateX('+(-dist)+'px)',offset:1}],{duration:dur,iterations:Infinity,easing:'linear'})})}
 // 색상 선택
 const cp=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT))cpT=pk[0];const list=rc?(S.rc||[]):TH[cpT];
  return`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto"><button class="pill ${rc?'on':''}" data-act="cpt" data-v="recent" aria-label="최근 사용" style="flex:none">🕘</button>${pk.map(n=>`<button class="pill ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" style="flex:none;white-space:nowrap">${n}</button>`).join('')}<button class="pill" data-act="pkopen" aria-label="컬러팩 설정" style="flex:none">📌</button></div><div class="row">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span style="color:var(--sub);font-size:12px;padding:6px 2px">최근 사용한 색상이 없습니다</span>'}</div>`};
@@ -833,7 +836,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v15',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v16',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
