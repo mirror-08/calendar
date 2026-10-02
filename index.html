@@ -325,6 +325,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .ovcs .row{flex-wrap:nowrap;overflow-x:auto;gap:0;margin:0}.ovcs .row:not(.tabs){justify-content:space-between;padding:0 4px}
 .ovcs .sw{width:18px;height:18px;border-radius:2px;border-width:0;flex:none;margin-right:10px}.ovcs .sw:last-child{margin-right:0}.ovcs .sw.on{box-shadow:0 0 0 1.5px var(--sheet),0 0 0 2.5px var(--ink)}
 .ovcs .tabs{gap:6px!important}.ovcs .pill{background:none;color:color-mix(in srgb,var(--ink) 88%,var(--bg));font-size:11px;padding:6px 9px}.ovcs .pill.on{background:#5f5f69;color:#fff}
+/* 색상 판: 원래 앱 사진 기준 (색 네모 20.5px, 좌 34·우 26 여백 / 컬러팩 타일 31×23) */
+.ovcs{flex-direction:column;gap:34px;padding:20px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+.cps{display:flex;gap:16.3px;padding:0 26px 0 34px;overflow-x:auto;min-height:20.5px;align-items:center}.cps .sw{width:20.5px;height:20.5px;border-radius:2px;border:0;flex:none;margin:0}.cpn{font-size:11px;color:var(--sub)}
+.cpt{display:flex;gap:10px;overflow-x:auto;padding:2px 10px}
+.cpk{flex:none;width:31px;height:23px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:1fr 1fr;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);overflow:hidden}.cpk i{display:block}.cpk span,.cpk.pin{grid-column:1/-1;grid-row:1/-1;font-size:12px;display:flex;align-items:center;justify-content:center}
+.cpk.on{outline:1.5px solid var(--ink);outline-offset:1.5px}
+/* 캘린더에 표시방법: 항목 사이를 원래 앱처럼 조금 좁게, 버튼은 흰 바탕에 옅은 그림자 */
+.ddlg h3{margin-bottom:12px}.ddlg .tabs+h3,.ddlg .row+h3{margin-top:20px}.ddcr{margin-top:16px}.ddcr i{margin-right:7px}
+.ddpv{margin-bottom:28px}.ddpv>div{min-height:100px!important}
+.ddlg .dpa{gap:27px;margin-right:13px}.ddlg .dpa button{background:var(--sheet);box-shadow:0 1.5px 4px rgba(0,0,0,.14);color:color-mix(in srgb,var(--ink) 92%,var(--bg))}
+/* 하루 일정 화면 글자색: 원래 앱처럼 짙게 */
+.dbig,.dmeta{color:color-mix(in srgb,var(--ink) 92%,var(--bg))}.dt{color:color-mix(in srgb,var(--ink) 94%,var(--bg))}.ds{color:color-mix(in srgb,var(--ink) 84%,var(--bg))}
 /* 달력 일정 글자: 원래 앱처럼 조금 작게, 자간은 살짝 넓게, 색은 짙게, 밑줄과 글자 사이 여백 */
 .ch{font-size:calc(var(--cw)*.104);letter-spacing:.01em;font-weight:500;line-height:1.12;padding-bottom:2px}
 /* 전체 글자색: 원래 앱이 더 짙어서 한 단계 짙게 */
@@ -509,6 +521,11 @@ function mqInit(){document.querySelectorAll('#weeks .mqi[data-t]').forEach(s=>{s
 // 색상 선택
 const cp=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT))cpT=pk[0];const list=rc?(S.rc||[]):TH[cpT];
  return`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto"><button class="pill ${rc?'on':''}" data-act="cpt" data-v="recent" aria-label="최근 사용" style="flex:none">🕘</button>${pk.map(n=>`<button class="pill ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" style="flex:none;white-space:nowrap">${n}</button>`).join('')}<button class="pill" data-act="pkopen" aria-label="컬러팩 설정" style="flex:none">📌</button></div><div class="row">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span style="color:var(--sub);font-size:12px;padding:6px 2px">최근 사용한 색상이 없습니다</span>'}</div>`};
+// 아래에서 올라오는 색상 판 (원래 앱처럼 위에는 색 네모, 아래에는 컬러팩마다 그 색들을 담은 작은 타일)
+const cpSheet=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT))cpT=pk[0];const list=rc?(S.rc||[]):TH[cpT];
+ const tile=(n,cols,lbl)=>`<button class="cpk ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" aria-label="${lbl}">${cols.length&&n!=='recent'?cols.slice(0,8).map(c=>`<i style="background:${c}"></i>`).join(''):'<span>🕘</span>'}</button>`;
+ return`<div class="cps">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span class="cpn">최근 사용한 색상이 없습니다</span>'}</div>`+
+ `<div class="cpt">${tile('recent',S.rc||[],'최근 사용')}${pk.map(n=>tile(n,TH[n],n)).join('')}<button class="cpk pin" data-act="pkopen" aria-label="컬러팩 설정">📌</button></div>`};
 function rcAdd(v){S.rc=[v,...(S.rc||[]).filter(x=>x!==v)].slice(0,10);save()}
 const pills=(o,cur,act)=>`<div class="row">${Object.entries(o).map(([k,v])=>`<button class="pill ${k===cur?'on':''}" data-act="${act}" data-v="${k}">${v}</button>`).join('')}</div>`;
 const fmt=k=>{const d=at(k);return(d.getMonth()+1)+'월 '+d.getDate()+'일 '+DOW[d.getDay()]+'요일'};
@@ -609,7 +626,7 @@ function ovDraw(){histSync();const _o=document.getElementById('ov');_o.style.bac
   const row=(o,cur,act)=>`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto;gap:8px">${Object.entries(o).map(([k,v])=>`<button class="pill ${k===cur?'on':''}" style="white-space:nowrap" data-act="${act}" data-v="${k}">${v}</button>`).join('')}</div>`;
   h=`<div class="ovd ddlg${DD.cp?' hid':''}" data-act="noop"><div class="ddtl">🗓 캘린더에 표시방법</div><div class="ddpv">${cells}</div>${ui==='ev'?`<h3>템플릿</h3><div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto;gap:8px">${S.tpls.map(t=>`<button class="pill ${DD.tid===t.id||(!DD.tid&&t.color===DD.color&&t.type===DD.type&&t.shape===DD.shape)?'on':''}" style="white-space:nowrap;display:flex;align-items:center;gap:5px" data-act="ddtpl" data-v="${t.id}"><i style="width:8px;height:8px;border-radius:2px;background:${t.color}"></i>${esc(t.name)}</button>`).join('')}</div>`:''}<h3>타입</h3>${row(TYPES,DD.type,'ddt')}${DD.type==='dot'?'':`<h3>모양</h3>${row(SHAPES,DD.shape,'dds')}`}<button class="rowv ddcr" data-act="ddcp"><span>색상</span><i style="background:${DD.color}"></i></button>${(n=>n?`<button class="rowv" data-act="ddall"><span>${ui==='tpl'?'이 템플릿을 쓰는 일정':'같은 템플릿 일정'} ${n}개도 함께 바꾸기</span><span style="font-size:15px">${DD.all?'☑':'☐'}</span></button>`:'')(sameTpl().length)}<div class="dpa"><button data-act="ovx">취소</button><button data-act="ddok">확인</button></div></div>`+
   // 원래 앱처럼 색상은 화면 아래에서 올라오는 판에서 고른다 (위쪽 어두운 곳을 누르면 닫힘)
-  (DD.cp?`<div class="ovcb" data-act="ddcp"></div><div class="ovcs" data-act="noop">${cp(DD.color,'ddc')}</div>`:'')}
+  (DD.cp?`<div class="ovcb" data-act="ddcp"></div><div class="ovcs" data-act="noop">${cpSheet(DD.color,'ddc')}</div>`:'')}
  el.innerHTML=h;if(el.querySelectorAll)el.querySelectorAll('.tabs').forEach((n,i)=>{n.scrollLeft=old[i]||0})}
 function tplW(t){const tp=t.tp||'',bp=t.bp||'';return{...t,tag:t.tag||'',tu:t.tu!==false,bu:t.bu!==false,tp,bp,tc:t.tc==null?tp.length:t.tc,bc:t.bc==null?0:t.bc,tmu:!!t.tmu,tmv:t.tmv||'',alu:!!t.alu,alv:t.alv||'0',check:!!t.check}}
 function saveT(){const p={...W};delete p.isNew;delete p.cpo;p.name=p.name.trim();if(W.isNew&&!p.name){ui='main';ov='';return R()}if(!p.name)p.name='새 템플릿';
@@ -900,7 +917,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v33',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v34',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
