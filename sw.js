@@ -1,5 +1,5 @@
 // 앱을 고친 뒤 다시 올릴 때는 버전 숫자를 올려 주세요.
-const CACHE = 'my-calendar-v30';
+const CACHE = 'my-calendar-v31';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
