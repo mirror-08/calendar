@@ -469,7 +469,8 @@ const LF=(()=>{try{return new Intl.DateTimeFormat('ko-KR-u-ca-chinese',{month:'n
 function lunar(d){const k=key(d);if(k in LC)return LC[k];let r=null;try{r=korLunar(d.getFullYear(),d.getMonth()+1,d.getDate())}catch(e){}if(r)return LC[k]=r;try{const p=LF.formatToParts(d),m=p.find(x=>x.type==='month').value;r={m:parseInt(m.replace(/\D/g,'')),d:parseInt(p.find(x=>x.type==='day').value),leap:/윤|bis/.test(m)}}catch(e){}return LC[k]=r}
 const TERMS=['춘분','청명','곡우','입하','소만','망종','하지','소서','대서','입추','처서','백로','추분','한로','상강','입동','소설','대설','동지','소한','대한','입춘','우수','경칩'];
 function sunLon(ms){const T=(ms/86400000+2440587.5-2451545)/36525,L0=280.46646+36000.76983*T,M=(357.52911+35999.05029*T)*Math.PI/180,C=(1.914602-.004817*T)*Math.sin(M)+.019993*Math.sin(2*M)+.000289*Math.sin(3*M),om=(125.04-1934.136*T)*Math.PI/180;return(((L0+C-.00569-.00478*Math.sin(om))%360)+360)%360}
-const TC={};function termOf(d){const k=key(d);if(k in TC)return TC[k];const m0=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),a=Math.floor(sunLon(m0)/15),b=Math.floor(sunLon(m0+864e5)/15);return TC[k]=a!==b?TERMS[b%24]:''}
+// 원래 앱과 다르게 나오는 절기 날짜는 원래 앱에 맞춤 (2026 상강: 원래 앱 10/24)
+const TC={},TFIX={'2026-10-23':'','2026-10-24':'상강'};function termOf(d){const k=key(d);if(k in TC)return TC[k];if(k in TFIX)return TC[k]=TFIX[k];const m0=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),a=Math.floor(sunLon(m0)/15),b=Math.floor(sunLon(m0+864e5)/15);return TC[k]=a!==b?TERMS[b%24]:''}
 const SOL={'1-1':'신정','3-1':'삼일절','5-5':'어린이날','6-6':'현충일','8-15':'광복절','10-3':'개천절','10-9':'한글날','12-25':'성탄절'},SUB=['3-1','5-5','8-15','10-3','10-9'];
 const sk=d=>(d.getMonth()+1)+'-'+d.getDate();
 function holiday(d){return holidayBase(d)||(subDays(d.getFullYear())[key(d)]?'대체공휴일':'')}
@@ -937,7 +938,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v39',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v40',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
