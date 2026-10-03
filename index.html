@@ -222,7 +222,9 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tb{padding:0 6px 0 14px;font-size:calc(var(--fw)*.0233)}.tb.tdash{padding:0 5px 0 13px}
 .tb>span:last-child{overflow-wrap:normal}
 .drow{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.drow.drg{background:var(--bg);position:relative;z-index:3}
+.drow.drg{position:relative;z-index:3}
+/* 원래 앱처럼 길게 누르면 그 줄 전체(화면 끝까지)가 회색이 되고, 움직이기 시작하면 사라진다. 끄는 동안 일정 바탕은 투명 */
+.drow{position:relative;z-index:0}.drow::before{content:"";position:absolute;top:0;bottom:0;left:-15px;right:-15px;background:color-mix(in srgb,var(--ink) 15%,var(--bg));opacity:0;transition:opacity .12s ease;z-index:-1;pointer-events:none}.drow.drp::before{opacity:1;transition:none}
 :root{--bh:var(--barh,calc(43px + env(safe-area-inset-bottom,0px)))}
 .wrap{padding-bottom:var(--bh)}
 #dayv{bottom:var(--bh)}
@@ -693,17 +695,17 @@ function applyOrder(ids){const m=new Map(S.tpls.map(t=>[t.id,t]));const out=ids.
 const ptOf=e=>{const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e;return{x:t.clientX,y:t.clientY}};
 function dSel(){return tedit&&ui==='main'?['.tdash[data-id]','t']:(dayOn&&!ui&&!ov?['.drow[data-eid]','e']:null)}
 function dStart(e){const k=dSel();if(!k)return;const b=e.target.closest&&e.target.closest(k[0]);if(!b)return;const p=ptOf(e);
- drag={el:b,kind:k[1],sel:k[0],x:p.x,y:p.y,on:false};drag.timer=setTimeout(()=>{if(drag){drag.on=true;b.classList.add('drg');if(navigator.vibrate)navigator.vibrate(15)}},380)}
+ drag={el:b,kind:k[1],sel:k[0],x:p.x,y:p.y,on:false};drag.timer=setTimeout(()=>{if(drag){drag.on=true;b.classList.add('drg','drp');if(navigator.vibrate)navigator.vibrate(15)}},380)}
 function dMove(e){if(!drag)return;const p=ptOf(e);if(!drag.on){if(Math.hypot(p.x-drag.x,p.y-drag.y)>8){clearTimeout(drag.timer);drag=null}return}
- if(e.cancelable)e.preventDefault();const d=drag,me=d.el;
+ if(e.cancelable)e.preventDefault();const d=drag,me=d.el;if(Math.hypot(p.x-d.x,p.y-d.y)>3)me.classList.remove('drp');
  // 잡은 일정은 손가락을 그대로 따라오고, 자리가 바뀌는 다른 일정은 미끄러지듯 옮겨 간다
- me.style.transition='none';me.style.transform=`translate(${p.x-d.x}px,${p.y-d.y}px)`;
+ me.style.transition='none';me.style.transform=`translate(${d.kind=='e'?0:p.x-d.x}px,${p.y-d.y}px)`;
  // 옮겨 가는 중인 일정은 화면에 보이는 자리 말고 실제 자리로 판단한다 (안 그러면 왔다 갔다 한다)
  const sibs=[...me.parentNode.children].filter(s=>s!==me&&s.matches(d.sel)),home=s=>{const r=s.getBoundingClientRect(),m=new DOMMatrix(getComputedStyle(s).transform);return{l:r.left-m.e,t:r.top-m.f,r:r.right-m.e,b:r.bottom-m.f}};
  const t=sibs.find(s=>{const h=home(s);return p.x>=h.l&&p.x<h.r&&p.y>=h.t&&p.y<h.b});
  if(t){const r1=new Map(sibs.map(s=>[s,s.getBoundingClientRect()])),o1=[me.offsetLeft,me.offsetTop];
   if(me.compareDocumentPosition(t)&4)t.after(me);else t.before(me);
-  d.x+=me.offsetLeft-o1[0];d.y+=me.offsetTop-o1[1];me.style.transform=`translate(${p.x-d.x}px,${p.y-d.y}px)`;
+  d.x+=me.offsetLeft-o1[0];d.y+=me.offsetTop-o1[1];me.style.transform=`translate(${d.kind=='e'?0:p.x-d.x}px,${p.y-d.y}px)`;
   sibs.forEach(s=>{const a=r1.get(s),b=s.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;
    s.style.transition='none';s.style.transform=`translate(${dx}px,${dy}px)`;s.offsetWidth;s.style.transition='transform .2s ease';s.style.transform=''})}}
 function applyEvOrder(ids){const idx=ids.map(i=>S.events.findIndex(e=>e.id===i)).filter(i=>i>=0).sort((a,b)=>a-b);if(idx.length!==ids.length)return;
@@ -711,7 +713,7 @@ function applyEvOrder(ids){const idx=ids.map(i=>S.events.findIndex(e=>e.id===i))
 function dEnd(){if(!drag)return;clearTimeout(drag.timer);const d=drag;drag=null;if(!d.on)return;noClick=Date.now();
  // 손을 떼면 잡은 일정이 제자리로 부드럽게 들어간 다음 순서를 저장한다
  d.el.style.transition='transform .16s ease';d.el.style.transform='';
- setTimeout(()=>{d.el.classList.remove('drg');d.el.style.transition='';noClick=Date.now();
+ d.el.classList.remove('drp');setTimeout(()=>{d.el.classList.remove('drg');d.el.style.transition='';noClick=Date.now();
  if(d.kind==='t'){const l=document.getElementById('tpll');if(l)applyOrder([...l.querySelectorAll('.tdash[data-id]')].map(x=>x.dataset.id));sheet()}
  else{const l=document.getElementById('dayv');if(l)applyEvOrder([...l.querySelectorAll('.drow[data-eid]')].map(x=>x.dataset.eid));R()}},170)}
 document.addEventListener('touchstart',dStart,{passive:true});document.addEventListener('touchmove',dMove,{passive:false});document.addEventListener('touchend',dEnd);document.addEventListener('touchcancel',dEnd);
@@ -969,7 +971,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v47',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v48',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
