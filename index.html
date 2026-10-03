@@ -402,6 +402,9 @@ html{-webkit-tap-highlight-color:transparent}body{touch-action:manipulation}
 .dempty{color:color-mix(in srgb,var(--line) 55%,var(--bg))}.dempty div{font-weight:600}.dempty svg{position:relative;left:-1.7px;top:.9px}.dempty div{position:relative;top:-.9px}
 .tdbn,.dft button.tdbn{background:color-mix(in srgb,var(--ink) 2%,var(--bg));box-shadow:0 1.5px 1.5px rgba(0,0,0,.2);color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
 body:has(#dayv[style*="flex"]) .bar::before{background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 33%,var(--bg)) 0 2px,transparent 2px 4px)}
+/* v42 원래 앱은 글자 획이 조금 더 두꺼워(색은 같고 진한 부분이 많음) 같은 색 외곽선으로 살짝 두껍게 */
+.dows div{-webkit-text-stroke:.1px currentColor}.sub{-webkit-text-stroke:.06px currentColor}
+.dt{-webkit-text-stroke:.15px currentColor}.ds{-webkit-text-stroke:.12px currentColor}.dmeta{-webkit-text-stroke:.12px currentColor}.dmeta b{-webkit-text-stroke:0}.dbig{-webkit-text-stroke:.1px currentColor}
 </style></head>
 <body>
 <div class="wrap"><div class="top"><h1 id="ttl" data-act="menu" style="cursor:pointer"></h1></div>
@@ -948,7 +951,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v41',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v42',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
