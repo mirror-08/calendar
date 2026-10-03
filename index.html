@@ -12,9 +12,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@300;400;500;600;700&text=%3A&display=swap"><!-- 원래 앱처럼 쌍점(:)만 아랫점이 글자 바닥에 붙는 Noto Serif 로 -->
 <style>
-:root{--bg:#fff;--ink:#3b3b44;--sub:#8b8b96;--line:#dcdce2;--sun:#e0675f;--sat:#4f7fc4;--today:#ececee;--sheet:#fff;--soft:#f4f4f6;--acc:#5f5f69;
+:root{--hi:#202020;--bg:#fff;--ink:#3b3b44;--sub:#8b8b96;--line:#dcdce2;--sun:#e0675f;--sat:#4f7fc4;--today:#ececee;--sheet:#fff;--soft:#f4f4f6;--acc:#5f5f69;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171c;--ink:#e6e6ec;--sub:#9a9aa6;--line:#33333c;--sun:#ff8a82;--sat:#8db4ff;--today:#2a2a32;--sheet:#212128;--soft:#2a2a32;--acc:#c4c4d0}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hi:#f0f0f4;--bg:#17171c;--ink:#e6e6ec;--sub:#9a9aa6;--line:#33333c;--sun:#ff8a82;--sat:#8db4ff;--today:#2a2a32;--sheet:#212128;--soft:#2a2a32;--acc:#c4c4d0}}
 *{box-sizing:border-box}html{height:100%}
 body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:'Noto Serif','Noto Serif KR','Gowun Batang','Apple SD Gothic Neo','Malgun Gothic',serif;font-size:15px}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -410,6 +410,25 @@ body:has(#dayv[style*="flex"]) .bar::before{background:repeating-linear-gradient
 .cln{margin:0 .6px}
 /* v46 달력: 원래 앱처럼 위쪽(월·요일)을 조금 내리고, 점선과 날짜 숫자 사이를 조금 띄운다 */
 .wrap{padding-top:8.7px}.dows{margin-bottom:2.2px}.cell .hd{padding-top:.6px}
+/* v49 복사 판: 원래 앱 사진에 맞춤 (그림자 거의 없음, 얇은 손잡이, 작은 네모·보통 굵기 제목, 아주 옅은 안내 글, 진한 2px 점선 상자) */
+#clip{height:calc(101.6px + env(safe-area-inset-bottom,0px));padding:0;box-shadow:0 -2px 9px rgba(0,0,0,.022)}
+#clip .cgrab{position:absolute;top:0;left:0;right:0;height:22px;padding:0}#clip .cgrab i{position:absolute;top:6.9px;left:50%;width:25px;height:2px;margin-left:-12.5px;border-radius:1px;background:color-mix(in srgb,var(--ink) 22%,var(--bg))}
+#clip .csq{position:absolute;left:17.2px;top:31.8px;width:13.2px;height:13.2px;border-radius:1.2px}
+#clip .cttl{position:absolute;left:42.4px;right:94px;top:31.5px;font-size:12.1px;font-weight:500;line-height:1;white-space:nowrap;overflow:hidden;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+#clip .cmsg{position:absolute;left:42.6px;top:57.2px;font-size:10.1px;line-height:1;color:color-mix(in srgb,var(--ink) 33%,var(--bg))}
+#clip .pbtn{position:absolute;right:15.2px;top:18px;width:70.7px;height:63.5px;padding:0;border:0;background:color-mix(in srgb,var(--ink) 2%,var(--bg)) repeating-linear-gradient(90deg,var(--pb) 0 2px,transparent 2px 4px) top/100% .6px no-repeat;--pb:color-mix(in srgb,var(--ink) 56%,var(--bg));color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+#clip .pbtn::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,var(--pb) 0 2px,transparent 2px 4px) bottom/100% .6px no-repeat,repeating-linear-gradient(180deg,var(--pb) 0 2px,transparent 2px 4px) left/.6px 100% no-repeat,repeating-linear-gradient(180deg,var(--pb) 0 2px,transparent 2px 4px) right/.6px 100% no-repeat}
+#clip .pbtn svg{position:absolute;top:13.7px;left:50%;margin-left:-4.2px;color:color-mix(in srgb,var(--ink) 55%,var(--bg))}#clip .pbtn span{position:absolute;left:0;right:0;top:24.9px;font-size:9.2px;line-height:13.2px;text-align:center;color:inherit}
+/* v49 날짜 이동 달력: 원래 앱 사진에 맞춤 (더 어두운 뒤 배경, 폭 340px·높이 521px, 줄 간격 50px, 옅은 회색 글자, 년월만 진하게, 가는 화살표, 작은 음력·버튼) */
+#dp{background:rgba(0,0,0,.6)}
+.dpbox{position:relative;width:340.5px;max-width:calc(100% - 20px);height:520.7px;padding:0;overflow:hidden;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
+.dpbox .dph{position:absolute;left:19.8px;top:25px;padding:0;font-size:15.3px;line-height:21.7px;font-weight:500;-webkit-text-stroke:.1px currentColor}.dpbox .dph small{display:block;font-size:15.3px}
+.dpbox .dpn{position:absolute;left:0;right:0;top:97.3px;height:24px;margin:0;font-size:14.3px;font-weight:500;color:var(--hi);justify-content:center}.dpbox .dpn span{position:relative;top:-1.4px}.dpbox .dpn button{position:absolute;top:0;height:24px;padding:0 6px;display:flex;align-items:center;color:var(--hi)}.dpbox .dpn button:first-child{left:33.5px}.dpbox .dpn button:last-child{right:33.5px}
+.dpbox .dpg{position:absolute;left:10px;right:10px;top:144.4px;grid-template-columns:repeat(7,45.8px);grid-template-rows:27.9px;grid-auto-rows:50px;row-gap:0;align-items:start}
+.dpbox .dpg>span{padding:0;height:28.5px;font-size:12.6px;line-height:1;font-weight:500}
+.dpbox .dpg button{width:35.2px;height:35.2px;margin:0 auto;font-size:12.3px;line-height:1;font-weight:500;color:inherit}.dpbox .dpg button.r{color:var(--sun)}
+.dpbox .dpl{position:absolute;left:25.5px;top:416px;font-size:12px;line-height:1;font-weight:500;-webkit-text-stroke:.1px currentColor}
+.dpbox .dpa{position:absolute;right:18px;bottom:19px;margin:0;gap:10.6px}.dpbox .dpa button{width:88.3px;height:34px;padding:0;font-size:11.6px;font-weight:500;background:color-mix(in srgb,var(--ink) 2%,var(--bg));box-shadow:0 1.5px 3px rgba(0,0,0,.16);color:inherit}
 .dt{-webkit-text-stroke:.15px currentColor}.ds{-webkit-text-stroke:.12px currentColor}.dmeta{-webkit-text-stroke:.12px currentColor}.dmeta b{-webkit-text-stroke:0}.dbig{-webkit-text-stroke:.1px currentColor}
 </style></head>
 <body>
@@ -629,10 +648,10 @@ const lunTxt=k=>{const l=lunar(at(k));return l?'음력 '+(l.leap?'윤':'')+l.m+'
 function drawDP(){histSync();const el=document.getElementById('dp');el.classList.toggle('on',!!DP);if(!DP){el.innerHTML='';return}
  const a=DP.a,b=DP.b,rg=b&&b!==a,first=new Date(DP.y,DP.m,1,12).getDay(),n=new Date(DP.y,DP.m+1,0).getDate();let c='';
  for(let i=0;i<first;i++)c+='<span></span>';
- for(let i=1;i<=n;i++){const dt=new Date(DP.y,DP.m,i,12),k=key(dt),red=dt.getDay()==0||holiday(dt);
+ for(let i=1;i<=n;i++){const dt=new Date(DP.y,DP.m,i,12),k=key(dt),red=dt.getDay()==0||holidayBase(dt);
   const cl=!rg?(k===a?'on':red?'r':''):k<a||k>b?(red?'r':''):'rb'+(k===a?' rs':'')+(k===b?' re':'');
   const pc=DP.col||'#5f5f69';c+=`<button class="${cl}" ${/^(on|rb)/.test(cl)?`style="background:${pc};color:${txt(pc)}"`:''} data-act="dpd" data-v="${k}">${pad(i)}</button>`}
- el.innerHTML=`<div class="dpbox" data-act="noop"><div class="dph">${rg?md(a)+' 부터<br>'+md(b)+' 까지, 총 '+span(a,b)+'일':md(a)+'<small>하루</small>'}</div><div class="dpn"><button data-act="dpm" data-v="-1" aria-label="이전 달">‹</button><span>${DP.y}년 ${DP.m+1}월</span><button data-act="dpm" data-v="1" aria-label="다음 달">›</button></div><div class="dpg">${DOW.map((x,i)=>`<span style="${i==0?'color:var(--sun)':''}">${x}</span>`).join('')}${c}</div><div style="padding:8px 14px;font-size:17px;min-height:34px">${rg?lunTxt(a)+' - '+lunTxt(b):lunTxt(a)}</div><div class="dpa"><button data-act="dpc">취소</button><button data-act="dpok">확인</button></div></div>`}
+ el.innerHTML=`<div class="dpbox" data-act="noop"><div class="dph">${rg?md(a)+' 부터<br>'+md(b)+' 까지, 총 '+span(a,b)+'일':md(a)+'<small>하루</small>'}</div><div class="dpn"><button data-act="dpm" data-v="-1" aria-label="이전 달"><svg width="8" height="15" viewBox="0 0 8 15" fill="none" stroke="currentColor" stroke-width="1"><path d="M7.5.4L.7 7.5l6.8 7.1"/></svg></button><span>${DP.y}년 ${DP.m+1}월</span><button data-act="dpm" data-v="1" aria-label="다음 달"><svg width="8" height="15" viewBox="0 0 8 15" fill="none" stroke="currentColor" stroke-width="1"><path d="M.5.4l6.8 7.1-6.8 7.1"/></svg></button></div><div class="dpg">${DOW.map((x,i)=>`<span style="${i==0?'color:var(--sun)':''}">${x}</span>`).join('')}${c}</div><div class="dpl">${rg?lunTxt(a)+' - '+lunTxt(b):lunTxt(a)}</div><div class="dpa"><button data-act="dpc">취소</button><button data-act="dpok">확인</button></div></div>`}
 const ic=d=>`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const IC={calg:ic('<rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/>'+[12.5,15.5,18.5].map(y=>[6.5,9.3,12,14.7,17.5].map(x=>`<circle cx="${x}" cy="${y}" r=".75" fill="currentColor" stroke="none"/>`).join('')).join('')),title:ic('<rect x="3" y="8" width="18" height="8" rx="1"/>'),body:ic('<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>'),cal:ic('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),bell:ic('<path d="M6 17V11a6 6 0 0112 0v6l1.5 2h-15zM10 21h4"/>'),rep:ic('<path d="M17 3l3 3-3 3M20 6H8a4 4 0 00-4 4M7 21l-3-3 3-3M4 18h12a4 4 0 004-4"/>'),moon:ic('<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'),hour:ic('<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>'),chk:ic('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12l3 3 5-6"/>'),list:ic('<path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6h9M11 12h9M11 18h9"/>'),tag:ic('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1"/>'),pin:ic('<path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>'),img:ic('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.5"/>'),globe:ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'),clock:ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),plus:ic('<path d="M12 4v16M4 12h16"/>'),pen:ic('<path d="M14.5 4.5l5 5L11 18l-6.5 1.5L6 13z"/><path d="M4.5 19.5l5-5"/><circle cx="10.6" cy="13.4" r="1.3"/><path d="M13 6l5 5"/>'),trash:ic('<path d="M4 6.5h16M9.5 6.5V4h5v2.5M6 6.5l1 14h10l1-14M10 10v7.5M14 10v7.5"/>'),exp:ic('<path d="M15 4H5v16h10M10 12h10M16.5 8.5L20 12l-3.5 3.5"/>'),copy:ic('<rect x="4" y="4" width="11" height="11"/><rect x="9" y="9" width="11" height="11"/>'),cut:ic('<circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8.2 8.3L20 17M8.2 15.7L20 7"/>'),mv:ic('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15.5h6M13 13.5l2 2-2 2"/>'),dot:ic('<circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>')};
 const FL=[['기본정보',[['제목',IC.title,''],['본문',IC.body,'body']]],['스케줄 정보',[['날짜와 시간',IC.cal,''],['알림',IC.bell,'alarm'],['반복',IC.rep,'rep'],['음력반복',IC.moon,'lrep'],['카운트다운',IC.hour,'cd']]],['할일 정보',[['체크박스',IC.chk,'check'],['체크리스트',IC.list,'list']]],['기타정보',[['태그',IC.tag,'tag'],['장소',IC.pin,'place'],['사진',IC.img,'photo'],['웹링크',IC.globe,'link']]]];
@@ -680,7 +699,8 @@ const isoWk=k=>{const d=at(k),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d
 const escC=s=>esc(s).replace(/:/g,'<span class="cln">:</span>');
 const fmtT=t=>{const[h,m]=t.split(':').map(Number);return(h<12?'AM':'PM')+'. '+(h%12||12)+(m?':'+String(m).padStart(2,'0'):'')};
 function clipDraw(){const el=document.getElementById('clip');el.style.display=CLIP?'block':'none';if(!CLIP){el.innerHTML='';return}const c=CLIP.e;
- el.innerHTML=`<div class="cgrab" data-act="clipx" aria-label="닫기"><i></i></div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="min-width:0"><div style="display:flex;align-items:center;gap:10px"><i style="width:14px;height:14px;background:${c.color};flex:none"></i><b style="font-size:14px;overflow:hidden;text-overflow:clip;white-space:nowrap">${esc(c.title)}</b></div><div style="color:var(--sub);font-size:12px;margin:8px 0 0 24px">${CLIP.cut?'잘라냈습니다.':'복사되었습니다.'}</div></div><button class="pbtn" data-act="paste"><span>︿</span>선택된 날에<br>붙여넣기</button></div>`}
+ // 원래 앱 복사 화면 사진에 맞춘 자리 (판 위쪽 기준)
+ el.innerHTML=`<div class="cgrab" data-act="clipx" aria-label="닫기"><i></i></div><i class="csq" style="background:${c.color}"></i><div class="cttl">${escC(c.title)}</div><div class="cmsg">${CLIP.cut?'잘라냈습니다.':'복사되었습니다.'}</div><button class="pbtn" data-act="paste"><svg width="8.4" height="4.6" viewBox="0 0 8.4 4.6" fill="none" stroke="currentColor" stroke-width=".7"><path d="M.3 4.3L4.2.4l3.9 3.9"/></svg><span>선택된 날에<br>붙여넣기</span></button>`}
 function dayDraw(){const el=document.getElementById('dayv');el.style.display=dayOn?'flex':'none';if(!dayOn){el.innerHTML='';return}
  const d=at(sel),l=lunar(d),dc=S.dec[sel],evs=S.events.filter(e=>occ(e,sel)).sort((a,b)=>S.events.indexOf(a)-S.events.indexOf(b));
  const hn0=holiday(d),hrow='';
@@ -771,7 +791,7 @@ function onRemote(snap){if(!SY||snap.metadata.hasPendingWrites)return;const d=sn
 async function syncInit(){try{if(typeof claude==='undefined')return;const[db,user]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!user)return;const id=await user.id();if(!id)return;
  SY={db,base:'data/users/'+id+'/',n:0};SY.meta=db.doc(SY.base+'cal');SYS='연결 중…';SY.meta.onSnapshot(onRemote,()=>{SYS='오류: 연결이 끊어졌어요';SY=null})}catch(e){SY=null}}
 let hd=0,hIgn=false,hT=null;
-const depth=()=>(schOn?1:0)+(dayOn?1:0)+(ui?1:0)+(ov?1:0)+(DP?1:0)+(pkOn?1:0);
+const depth=()=>(schOn?1:0)+(dayOn?1:0)+(ui?1:0)+(ov?1:0)+(DP?1:0)+(pkOn?1:0)+(CLIP?1:0);
 const hOf=u=>{const m=/#v(\d+)$/.exec(u||'');return m?+m[1]:0};
 function hpush(n){try{location.hash='#v'+n;return}catch(e){}try{history.pushState({d:n},'')}catch(e){}}
 function hlock(ms){hIgn=true;clearTimeout(hT);hT=setTimeout(()=>{hIgn=false;histSync()},ms)}
@@ -786,6 +806,8 @@ function closeTop(){
  if(ui==='ev')return saveW();
  if(ui==='tpl')return saveT();
  if(ui){ui='';tedit=false;return R()}
+ // 복사·잘라내기 판이 떠 있으면 뒤로가기는 먼저 그 판만 닫는다 (한 번 더 누르면 달력으로)
+ if(CLIP){CLIP=null;return R()}
  if(dayOn){dayOn=false;return R()}}
 function onNav(e){if(hIgn)return;const n=e.type==='hashchange'?hOf(e.newURL):(e.state&&typeof e.state.d==='number'?e.state.d:hOf(typeof location!=='undefined'?location.href:'')),prev=hd;
  if(n===prev)return;if(n>prev){hd=n;histSync();return}hd=n;for(let i=0;i<prev-n;i++)closeTop();histSync()}
@@ -971,7 +993,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v48',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v49',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
