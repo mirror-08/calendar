@@ -993,7 +993,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v50',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v51',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
@@ -1049,7 +1049,10 @@ function widgetPayload(){const EI=new Map(S.events.map((e,i)=>[e.id,i])),days={}
  return{today:tk,gen:Date.now(),days}}
 let wT=null;function widgetSync(){if(!window.AndroidApp)return;clearTimeout(wT);wT=setTimeout(()=>{try{AndroidApp.setWidgetData(JSON.stringify(widgetPayload()))}catch(e){}},500)}
 // 앱을 켜 둔 채로 날짜가 바뀌었으면 다시 연다
-window.onAppResume=()=>{if(key(new Date())!==tk)location.reload();else widgetSync()};
+// 새 버전 확인: 앱으로 돌아오거나 처음 열 때 서버의 index.html 버전을 보고, 다르면 (편집 중이 아닐 때) 새로 불러온다
+function chkUpd(){try{if(typeof fetch!=='function')return;fetch('./index.html?_t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(s=>{const m=/const APPV='(v[0-9]+)'/.exec(s);if(!m||m[1]===APPV)return;let tried='';try{tried=sessionStorage.getItem('updTry')||''}catch(e){}if(tried===m[1])return;if(ui||ov||DP||pkOn||drag)return;try{sessionStorage.setItem('updTry',m[1])}catch(e){}try{navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(g=>g&&g.update())}catch(e){}location.reload()}).catch(()=>{})}catch(e){}}
+setTimeout(chkUpd,2500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
+window.onAppResume=()=>{if(key(new Date())!==tk)location.reload();else{widgetSync();chkUpd()}};
 R();syncInit();ghSync();widgetSync();
 (()=>{const bar=document.getElementById('bar'),f=()=>{if(bar&&bar.offsetHeight)document.documentElement.style.setProperty('--barh',bar.offsetHeight+'px')};f();setTimeout(f,300);if(typeof addEventListener==='function')addEventListener('resize',f)})();
 // 달력 좌우 넘기기: 옆 달을 바로 옆에 미리 그려 두고 손가락을 따라 함께 밀리게 한다 (넘길 때 빈 화면이 보이지 않게)

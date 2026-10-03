@@ -1,10 +1,11 @@
 // 앱을 고친 뒤 다시 올릴 때는 버전 숫자를 올려 주세요.
-const CACHE = 'my-calendar-v50';
+const CACHE = 'my-calendar-v51';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  // 새 버전을 저장할 때 휴대폰에 남아 있는 예전 파일을 쓰지 않도록 서버에서 다시 받는다
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -19,9 +20,12 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
 
   // 앱 화면: 인터넷이 되면 새 버전, 안 되면 저장된 버전
+  // (주소 끝에 매번 다른 숫자를 붙여 GitHub 쪽 10분 캐시를 건너뛴다)
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req, { cache: 'no-store' }).then(r => {
-      const copy = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', copy)); return r;
+    const u = new URL(req.url); u.hash = ''; u.searchParams.set('_t', Date.now());
+    e.respondWith(fetch(u.toString(), { cache: 'no-store' }).then(r => {
+      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', copy)); }
+      return r;
     }).catch(() => caches.match('./index.html')));
     return;
   }
