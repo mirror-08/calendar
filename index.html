@@ -200,7 +200,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tr1 .btn{flex:none;width:70px;height:90px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px;padding:11px;font-size:10.6px;line-height:16px;white-space:normal;text-align:left}
 .tr1 .btn>span:last-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .tdash{background:var(--sheet);border:1px dashed #c9c9cf;box-shadow:0 6px 10px rgba(0,0,0,.07);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.tdash>*{opacity:.6}
-.tdash.drg{box-shadow:0 8px 18px rgba(0,0,0,.28);position:relative;z-index:3}
+.tdash.drg{position:relative;z-index:3}
 .on-sheet .sheet.page{padding-left:25.6px;padding-right:25.6px}
 .tpt{font-size:17px;font-weight:700;margin-left:12px;color:color-mix(in srgb,var(--ink) 85%,var(--bg))}
 .tagi{height:25.6px;padding:0 8px;font-size:11.5px;font-weight:700;color:#7f7f88;border:1px dashed #cfcfd4}.tagi::placeholder{color:#bdbdc2;font-weight:700}
@@ -222,7 +222,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tb{padding:0 6px 0 14px;font-size:calc(var(--fw)*.0233)}.tb.tdash{padding:0 5px 0 13px}
 .tb>span:last-child{overflow-wrap:normal}
 .drow{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.drow.drg{background:var(--sheet);box-shadow:0 6px 16px rgba(0,0,0,.2);position:relative;z-index:3}
+.drow.drg{background:var(--bg);position:relative;z-index:3}
 :root{--bh:var(--barh,calc(43px + env(safe-area-inset-bottom,0px)))}
 .wrap{padding-bottom:var(--bh)}
 #dayv{bottom:var(--bh)}
@@ -695,13 +695,25 @@ function dSel(){return tedit&&ui==='main'?['.tdash[data-id]','t']:(dayOn&&!ui&&!
 function dStart(e){const k=dSel();if(!k)return;const b=e.target.closest&&e.target.closest(k[0]);if(!b)return;const p=ptOf(e);
  drag={el:b,kind:k[1],sel:k[0],x:p.x,y:p.y,on:false};drag.timer=setTimeout(()=>{if(drag){drag.on=true;b.classList.add('drg');if(navigator.vibrate)navigator.vibrate(15)}},380)}
 function dMove(e){if(!drag)return;const p=ptOf(e);if(!drag.on){if(Math.hypot(p.x-drag.x,p.y-drag.y)>8){clearTimeout(drag.timer);drag=null}return}
- if(e.cancelable)e.preventDefault();const el=document.elementFromPoint(p.x,p.y),t=el&&el.closest&&el.closest(drag.sel);
- if(t&&t!==drag.el&&t.parentNode===drag.el.parentNode){if(drag.el.compareDocumentPosition(t)&4)t.after(drag.el);else t.before(drag.el)}}
+ if(e.cancelable)e.preventDefault();const d=drag,me=d.el;
+ // 잡은 일정은 손가락을 그대로 따라오고, 자리가 바뀌는 다른 일정은 미끄러지듯 옮겨 간다
+ me.style.transition='none';me.style.transform=`translate(${p.x-d.x}px,${p.y-d.y}px)`;
+ // 옮겨 가는 중인 일정은 화면에 보이는 자리 말고 실제 자리로 판단한다 (안 그러면 왔다 갔다 한다)
+ const sibs=[...me.parentNode.children].filter(s=>s!==me&&s.matches(d.sel)),home=s=>{const r=s.getBoundingClientRect(),m=new DOMMatrix(getComputedStyle(s).transform);return{l:r.left-m.e,t:r.top-m.f,r:r.right-m.e,b:r.bottom-m.f}};
+ const t=sibs.find(s=>{const h=home(s);return p.x>=h.l&&p.x<h.r&&p.y>=h.t&&p.y<h.b});
+ if(t){const r1=new Map(sibs.map(s=>[s,s.getBoundingClientRect()])),o1=[me.offsetLeft,me.offsetTop];
+  if(me.compareDocumentPosition(t)&4)t.after(me);else t.before(me);
+  d.x+=me.offsetLeft-o1[0];d.y+=me.offsetTop-o1[1];me.style.transform=`translate(${p.x-d.x}px,${p.y-d.y}px)`;
+  sibs.forEach(s=>{const a=r1.get(s),b=s.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;
+   s.style.transition='none';s.style.transform=`translate(${dx}px,${dy}px)`;s.offsetWidth;s.style.transition='transform .2s ease';s.style.transform=''})}}
 function applyEvOrder(ids){const idx=ids.map(i=>S.events.findIndex(e=>e.id===i)).filter(i=>i>=0).sort((a,b)=>a-b);if(idx.length!==ids.length)return;
  const cur=ids.map(i=>S.events.find(e=>e.id===i));idx.forEach((p,n)=>{S.events[p]=cur[n]});save()}
-function dEnd(){if(!drag)return;clearTimeout(drag.timer);const d=drag;drag=null;if(!d.on)return;noClick=Date.now();d.el.classList.remove('drg');
+function dEnd(){if(!drag)return;clearTimeout(drag.timer);const d=drag;drag=null;if(!d.on)return;noClick=Date.now();
+ // 손을 떼면 잡은 일정이 제자리로 부드럽게 들어간 다음 순서를 저장한다
+ d.el.style.transition='transform .16s ease';d.el.style.transform='';
+ setTimeout(()=>{d.el.classList.remove('drg');d.el.style.transition='';noClick=Date.now();
  if(d.kind==='t'){const l=document.getElementById('tpll');if(l)applyOrder([...l.querySelectorAll('.tdash[data-id]')].map(x=>x.dataset.id));sheet()}
- else{const l=document.getElementById('dayv');if(l)applyEvOrder([...l.querySelectorAll('.drow[data-eid]')].map(x=>x.dataset.eid));R()}}
+ else{const l=document.getElementById('dayv');if(l)applyEvOrder([...l.querySelectorAll('.drow[data-eid]')].map(x=>x.dataset.eid));R()}},170)}
 document.addEventListener('touchstart',dStart,{passive:true});document.addEventListener('touchmove',dMove,{passive:false});document.addEventListener('touchend',dEnd);document.addEventListener('touchcancel',dEnd);
 document.addEventListener('mousedown',dStart);document.addEventListener('mousemove',dMove);document.addEventListener('mouseup',dEnd);
 document.addEventListener('contextmenu',e=>{if(e.target.closest&&((tedit&&e.target.closest('.tdash'))||(dayOn&&e.target.closest('.drow'))))e.preventDefault()});
@@ -957,7 +969,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v46',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v47',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
