@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8"><title>나의 달력</title>
+<html lang="ko"><head><meta charset="utf-8"><title>하루달</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="나의 달력">
+<meta name="apple-mobile-web-app-title" content="하루달">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap">
@@ -899,7 +899,7 @@ function bkHtml(){const lb=lsGet('my-calendar-lastbk');
  (RST&&RST.ics?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>가져올 일정 ${RST.events.length}개${RST.repl?`<br>이전에 가져온 일정 ${RST.repl}개는 새로 바뀌어요.`:''}${RST.tpls.length?`<br>새 템플릿: ${RST.tpls.map(t=>esc(t.name)).join(', ')}`:''}<br>지금 기록은 그대로 두고 일정만 추가돼요.<div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok" ${RST.events.length?'':'disabled'}>가져오기</button></div></div>`:'')+
  (RST&&!RST.ics?`<div style="margin-top:14px;padding:12px;background:var(--soft);font-size:11.5px;line-height:1.6"><b>${esc(RST.name)}</b><br>일정 ${RST.data.events.length}개${RST.at?' · '+ymdhm(RST.at)+' 백업':''}<br><span style="color:var(--sun)">복원하면 지금 기록이 모두 이 파일 내용으로 바뀌어요.</span><div class="acts" style="margin-top:10px"><button data-act="rstno">취소</button><button class="pri" data-act="rstok">복원하기</button></div></div>`:'')+
  (BKMSG?`<div class="sub" style="padding:10px 2px 0;font-size:11px">${esc(BKMSG)}</div>`:'')}
-function bkup(){const d=new Date(),name='나의달력-백업-'+key(d)+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
+function bkup(){const d=new Date(),name='하루달-백업-'+key(d)+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
  const f=new File([JSON.stringify({app:'my-calendar',v:1,at:d.getTime(),data:S})],name,{type:'application/json'});
  const done=()=>{lsSet('my-calendar-lastbk',String(d.getTime()));BKMSG='백업 파일을 저장했어요: '+name;sheet()};
  if(window.AndroidApp){if(AndroidApp.saveFile(name,JSON.stringify({app:'my-calendar',v:1,at:d.getTime(),data:S})))done();else{BKMSG='백업 파일을 저장하지 못했어요.';sheet()}return} // 안드로이드 앱: 다운로드 폴더에 저장
@@ -911,7 +911,7 @@ function rstRead(file){const fr=new FileReader();RST=null;
  fr.onload=()=>{if(/^﻿?\s*BEGIN:VCALENDAR/i.test(fr.result)){try{RST=icsRead(fr.result,file.name);BKMSG=RST.events.length?'':'새로 가져올 일정이 없어요.'}catch(e){BKMSG='.ics 파일을 읽지 못했어요.'}return sheet()}
   try{const j=JSON.parse(fr.result),d=j&&j.data?j.data:j;
    if(!d||!Array.isArray(d.events)||!Array.isArray(d.tpls))throw 0;RST={name:file.name,at:j.at||d.ts,data:d};BKMSG=''}
-  catch(e){BKMSG='이 파일은 나의 달력 백업 파일이 아니에요.'}sheet()};
+  catch(e){BKMSG='이 파일은 하루달 백업 파일이 아니에요.'}sheet()};
  fr.onerror=()=>{BKMSG='파일을 읽지 못했어요.';sheet()};fr.readAsText(file)}
 // .ics 가져오기: 분류(CATEGORIES)는 같은 이름의 템플릿 모양을 따르고, 없으면 템플릿을 새로 만든다
 const ICS_CAT={'확정':'확정 스케줄','예정':'예정 스케줄','장기 확정':'확정 장기 스케줄','연뮤 이벤트 스케쥴':'연뮤 스페셜 이벤트'},ICS_MERGE=['장기 확정','연뮤 이벤트 스케쥴'],ICS_COL=['#b48ad9','#ffc229','#3fa9f5','#00a58e','#f0568a','#8a8c96'];
@@ -955,7 +955,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v44',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v45',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};

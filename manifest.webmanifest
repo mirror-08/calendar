@@ -1,6 +1,6 @@
 {
-  "name": "나의 달력",
-  "short_name": "나의 달력",
+  "name": "하루달",
+  "short_name": "하루달",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
