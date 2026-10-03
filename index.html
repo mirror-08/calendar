@@ -419,6 +419,8 @@ body:has(#dayv[style*="flex"]) .bar::before{background:repeating-linear-gradient
 #clip .pbtn{position:absolute;right:15.2px;top:18px;width:70.7px;height:63.5px;padding:0;border:0;background:color-mix(in srgb,var(--ink) 2%,var(--bg)) repeating-linear-gradient(90deg,var(--pb) 0 2px,transparent 2px 4px) top/100% .6px no-repeat;--pb:color-mix(in srgb,var(--ink) 56%,var(--bg));color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
 #clip .pbtn::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,var(--pb) 0 2px,transparent 2px 4px) bottom/100% .6px no-repeat,repeating-linear-gradient(180deg,var(--pb) 0 2px,transparent 2px 4px) left/.6px 100% no-repeat,repeating-linear-gradient(180deg,var(--pb) 0 2px,transparent 2px 4px) right/.6px 100% no-repeat}
 #clip .pbtn svg{position:absolute;top:13.7px;left:50%;margin-left:-4.2px;color:color-mix(in srgb,var(--ink) 55%,var(--bg))}#clip .pbtn span{position:absolute;left:0;right:0;top:24.9px;font-size:9.2px;line-height:13.2px;text-align:center;color:inherit}
+/* v52 구간(선) 일정: 선을 글씨 양옆 두 토막으로 그려 글씨 뒤는 투명하게 (오늘 칸 회색·날짜 배경이 그대로 보이게) */
+.ch.seg,.ch.segd,.ch.arw,.ch.arwd{background:none}.ch .sl{flex:1 1 0;min-width:3px;height:1px;background:var(--c)}.ch.segd .sl,.ch.arwd .sl{background:repeating-linear-gradient(90deg,var(--c) 0 3px,transparent 3px 5px)}.ch .gp{background:transparent;flex:0 1 auto;min-width:0}
 /* v49 날짜 이동 달력: 원래 앱 사진에 맞춤 (더 어두운 뒤 배경, 폭 340px·높이 521px, 줄 간격 50px, 옅은 회색 글자, 년월만 진하게, 가는 화살표, 작은 음력·버튼) */
 #dp{background:rgba(0,0,0,.6)}
 .dpbox{position:relative;width:340.5px;max-width:calc(100% - 20px);height:520.7px;padding:0;overflow:hidden;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}
@@ -543,7 +545,7 @@ const chipHtml=(e,k,low)=>{const s=e.date,en=e.end||e.date,rp=k>en,rg=en!==s&&!r
  if(e.shape==='round'||e.shape==='rbg'){if(lf)x+=';border-top-left-radius:0;border-bottom-left-radius:0';if(rf)x+=';border-top-right-radius:0;border-bottom-right-radius:0'}
  const w=rg?`;width:calc(${nd}*100% - ${(lf?0:1)+(rf?0:1)}px);margin-left:${lf?0:1}px;margin-right:0`:'';
  const tx=(e.cd?cdTxt(e)+' ':'')+(e.check?(e.done?'☑ ':'☐ '):'')+esc(e.title);
- return`<span class="ch ${e.type} ${e.shape}${rg?' rng':''}${lf?'':' st'}${rf?'':' en'}${e.done&&e.check?' done':''}${low?' low':''}" data-act="ev" data-id="${e.id}" style="${x};--c:${e.color}${w}">${SEGS.includes(e.shape)?`<b class="gp tt">${tx}</b>`:`<span class="tt"><span class="mqi">${tx}</span></span>`}</span>`};
+ return`<span class="ch ${e.type} ${e.shape}${rg?' rng':''}${lf?'':' st'}${rf?'':' en'}${e.done&&e.check?' done':''}${low?' low':''}" data-act="ev" data-id="${e.id}" style="${x};--c:${e.color}${w}">${SEGS.includes(e.shape)?`<i class="sl"></i><b class="gp tt">${tx}</b><i class="sl"></i>`:`<span class="tt"><span class="mqi">${tx}</span></span>`}</span>`};
 function decCss(p,col,strong){const c=`color-mix(in srgb,${col||'#8a8c96'} ${strong?60:30}%,transparent)`,l=(d)=>`linear-gradient(${d},transparent calc(50% - .8px),${c} calc(50% - .8px),${c} calc(50% + .8px),transparent calc(50% + .8px))`;
  return({solid:`background:${c}`,
  stripe:`background:repeating-linear-gradient(135deg,${c} 0 2px,transparent 2px 6px)`,
@@ -560,13 +562,22 @@ function draw(){document.getElementById('ttl').innerHTML=(view.getMonth()+1)+'�
 function weeksHtml(){const EI=new Map(S.events.map((e,i)=>[e.id,i]));
  const st=new Date(view.getFullYear(),view.getMonth(),1-view.getDay(),12),EV=evIn(key(st),key(new Date(st.getFullYear(),st.getMonth(),st.getDate()+41,12)));let h='';
  for(let w=0;w<6;w++){const d0=new Date(st.getFullYear(),st.getMonth(),st.getDate()+w*7,12);if(w>=4&&d0.getMonth()!==view.getMonth()&&w*7+st.getDate()>0&&d0.getMonth()!==view.getMonth())break;h+='<div class="week">';
+  // 한 주 안에서 일정마다 줄(자리)을 정해 둔다: 보통 일정은 위에서부터, '하단 한줄 텍스트'는 칸 맨 아래에서부터 쌓는다.
+  // (여러 날 일정이 매일 같은 줄에 오고, 하단 일정 때문에 다른 일정이 같이 내려가거나 겹치지 않게)
+  const wK=[],wIn=[];for(let i=0;i<7;i++){const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+i,12);wK.push(key(d));wIn.push(d.getMonth()===view.getMonth())}
+  const wEv=EV.filter(e=>e.type!=='dot'&&wK.some((k,i)=>wIn[i]&&occ(e,k)));
+  const lanes=(list,desc)=>{const g=[];list.slice().sort((a,b)=>desc?EI.get(b.id)-EI.get(a.id):EI.get(a.id)-EI.get(b.id)).forEach(e=>{const ds=[];wK.forEach((k,i)=>{if(wIn[i]&&occ(e,k))ds.push(i)});let n=0;while(g[n]&&ds.some(i=>g[n][i]))n++;g[n]=g[n]||[];ds.forEach(i=>g[n][i]=e)});return g};
+  const TL=lanes(wEv.filter(e=>e.type!=='low'),false),LL=lanes(wEv.filter(e=>e.type==='low'),true);
+  const PH=lw=>`<span class="ch line${lw?' low':''}" style="visibility:hidden">&nbsp;</span>`;
   for(let i=0;i<7;i++){const d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+i,12),k=key(d),hn=holiday(d),l=lunar(d),dc=S.dec[k];
    if(d.getMonth()!==view.getMonth()){h+='<div class="cell out"></div>';continue} // 이번 달이 아닌 날은 비워 둔다
-   const evs=EV.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));let lowDone=0;
+   const evs=EV.filter(e=>occ(e,k)).sort((a,b)=>EI.get(a.id)-EI.get(b.id));
    h+=`<div class="cell ${k===tk?'today ':''}${k===sel?'sel ':''}${hn||d.getDay()==0?'red':d.getDay()==6?'sat':''}" data-act="day" data-k="${k}">${layer(dc,k===sel?'calc(var(--cw)*.61)':'calc(var(--cw)*.42)')}<div class="hd"><div class="dn"><b>${pad(d.getDate())}</b>${k===sel?`<small>${dd(k)}</small>`:''}</div>`+
    (()=>{const lu=k===sel&&l?`음 ${l.leap?'윤':''}${l.m}.${l.d}`:'',tn=hn?'':termOf(d); // 원래 앱처럼 "개천절 · 음 8.23" 한 줄로
     const j=lu?' · '+lu:'',o=lu?' one':'';return hn?`<div class="sub hl2${o}">${hn}${j}</div>`:tn?`<div class="sub term${o}">${tn}${j}</div>`:lu?`<div class="sub">${lu}</div>`:''})()+'</div>'+
-   evs.filter(e=>e.type!=='dot').map(e=>{const lw=e.type==='low'&&!lowDone;if(lw)lowDone=1;return chipHtml(e,k,lw)}).join('')+(evs.some(e=>e.type==='dot')?`<div class="dots">${evs.filter(e=>e.type==='dot').map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>`:'')+(dc&&dc.stk?`<span class="stk" style="${POSCSS[dc.spos||'br']}">${dc.stk}</span>`:'')+'</div>'}
+   (()=>{let o='',mt=-1,ml=-1;TL.forEach((g,n)=>{if(g[i])mt=n});LL.forEach((g,n)=>{if(g[i])ml=n});
+    for(let n=0;n<=mt;n++){const e=TL[n][i];o+=e?chipHtml(e,k,false):PH(false)}
+    for(let n=ml;n>=0;n--){const e=LL[n][i],lw=n===ml;o+=e?chipHtml(e,k,lw):PH(lw)}return o})()+(evs.some(e=>e.type==='dot')?`<div class="dots">${evs.filter(e=>e.type==='dot').map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>`:'')+(dc&&dc.stk?`<span class="stk" style="${POSCSS[dc.spos||'br']}">${dc.stk}</span>`:'')+'</div>'}
   h+='</div>'}
  return h}
 // 누른(선택한) 날짜 칸의 긴 일정 제목만 옆으로 흘러가며 끝까지 보여 준다 (글꼴이 늦게 받아지거나 화면 크기가 바뀌면 다시 잰다)
@@ -993,7 +1004,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v51',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v52',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
