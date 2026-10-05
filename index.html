@@ -427,6 +427,9 @@ body:has(#dayv[style*="flex"]) .bar::before{background:repeating-linear-gradient
 .ch.seg.st::before,.ch.segd.st::before,.ch.seg.en::after,.ch.segd.en::after{content:'';position:absolute;top:50%;width:.7px;height:7.4px;margin-top:-3.7px;background:var(--c)}.ch.seg.st::before,.ch.segd.st::before{left:0}.ch.seg.en::after,.ch.segd.en::after{right:0}
 .ch.arw.st::before,.ch.arwd.st::before{margin-top:-2.85px;border-width:2.85px 3.2px 2.85px 0}.ch.arw.en::after,.ch.arwd.en::after{margin-top:-2.85px;border-width:2.85px 0 2.85px 3.2px}
 .ch.cry.rng{background:color-mix(in srgb,var(--c) 6.5%,transparent)}
+/* v58 색상 고르기 창: 선택한 색 테두리가 잘리지 않게 위아래 여유, 아래 줄은 컬러팩 이름으로 */
+.cps{padding-top:4px;padding-bottom:4px;margin:-4px 0}
+.cpk.nm{width:auto;height:auto;display:block;padding:6px 10px;font-size:11px;line-height:1.2;white-space:nowrap;box-shadow:none;background:none;overflow:visible;color:color-mix(in srgb,var(--ink) 81%,var(--bg))}.cpk.nm.on{background:#5f5f69;color:#fff;outline:none}
 /* v56 편집 화면 글씨: 하루 일정과 같은 굵기로 (타자 칠 때 얇아 보이지 않게). 본문 안내 문구는 그대로 */
 .page .tnm{-webkit-text-stroke:.15px currentColor}.page .bdy{font-weight:500;-webkit-text-stroke:.12px currentColor}.page .bdy::placeholder{-webkit-text-stroke:0}
 /* v55 할 일: 하루 일정은 색 네모 대신 같은 색 체크 상자, 완료하면 옅은 회색 + 가운데 줄. 편집 화면은 날짜 줄 모양 + 초록 완료됨 단추 */
@@ -612,9 +615,9 @@ const cp=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT)
  return`<div class="row tabs" style="flex-wrap:nowrap;overflow-x:auto"><button class="pill ${rc?'on':''}" data-act="cpt" data-v="recent" aria-label="최근 사용" style="flex:none">🕘</button>${pk.map(n=>`<button class="pill ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" style="flex:none;white-space:nowrap">${n}</button>`).join('')}<button class="pill" data-act="pkopen" aria-label="컬러팩 설정" style="flex:none">📌</button></div><div class="row">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span style="color:var(--sub);font-size:12px;padding:6px 2px">최근 사용한 색상이 없습니다</span>'}</div>`};
 // 아래에서 올라오는 색상 판 (원래 앱처럼 위에는 색 네모, 아래에는 컬러팩마다 그 색들을 담은 작은 타일)
 const cpSheet=(cur,at)=>{const pk=packs(),rc=cpT==='recent';if(!rc&&!pk.includes(cpT))cpT=pk[0];const list=rc?(S.rc||[]):TH[cpT];
- const tile=(n,cols,lbl)=>`<button class="cpk ${n===cpT?'on':''}" data-act="cpt" data-v="${n}" aria-label="${lbl}">${cols.length&&n!=='recent'?cols.slice(0,8).map(c=>`<i style="background:${c}"></i>`).join(''):'<span>🕘</span>'}</button>`;
+ const tile=(n,cols,lbl)=>`<button class="cpk nm ${n===cpT?'on':''}" data-act="cpt" data-v="${n}">${n==='recent'?'최근 사용':esc(lbl)}</button>`; // 컬러칩 대신 이름으로 (알아보기 쉽게)
  return`<div class="cps">${list.length?list.map(c=>`<button class="sw ${c===cur?'on':''}" style="background:${c}" data-act="${at}" data-v="${c}" aria-label="색 ${c}"></button>`).join(''):'<span class="cpn">최근 사용한 색상이 없습니다</span>'}</div>`+
- `<div class="cpt">${tile('recent',S.rc||[],'최근 사용')}${pk.map(n=>tile(n,TH[n],n)).join('')}<button class="cpk pin" data-act="pkopen" aria-label="컬러팩 설정">📌</button></div>`};
+ `<div class="cpt tabs">${tile('recent',S.rc||[],'최근 사용')}${pk.map(n=>tile(n,TH[n],n)).join('')}<button class="cpk pin" data-act="pkopen" aria-label="컬러팩 설정">📌</button></div>`};
 function rcAdd(v){S.rc=[v,...(S.rc||[]).filter(x=>x!==v)].slice(0,10);save()}
 const pills=(o,cur,act)=>`<div class="row">${Object.entries(o).map(([k,v])=>`<button class="pill ${k===cur?'on':''}" data-act="${act}" data-v="${k}">${v}</button>`).join('')}</div>`;
 const fmt=k=>{const d=at(k);return(d.getMonth()+1)+'월 '+d.getDate()+'일 '+DOW[d.getDay()]+'요일'};
@@ -1029,7 +1032,7 @@ function icsRead(txt,name){const raw=icsParse(txt),newT=[],tOf={};
 function rstApply(){if(!RST)return;if(RST.ics){const n=RST.events.length,idSet=new Set(RST.ids);S.events=S.events.filter(e=>!idSet.has(e.id));S.events.push(...RST.events);S.tpls.push(...RST.tpls);save();RST=null;BKMSG='일정 '+n+'개를 가져왔어요.';return R()}const d=RST.data;S=Object.assign({dec:{},ver:2},d);S.dec=S.dec||{};S.tpls=dedupeTpls(S.tpls);
  save();RST=null;BKMSG='복원했어요. 일정 '+S.events.length+'개';R()}
 // GitHub 비공개 저장소(data.json)로 휴대폰·브라우저 자동 동기화. 토큰은 기기마다 따로 저장하고 백업 파일에는 넣지 않는다
-const APPV='v57',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
+const APPV='v58',GHP='my-calendar-prev';// sw.js의 CACHE 번호와 같게 유지
 const GHK='my-calendar-gh',GHS={busy:0,msg:'',etag:'',t:null,ask:null,last:0};let GH=(()=>{try{return JSON.parse(lsGet(GHK)||'null')}catch(e){return null}})();
 const ghSave=()=>{try{GH?localStorage.setItem(GHK,JSON.stringify(GH)):localStorage.removeItem(GHK)}catch(e){}};
 const b64e=s=>{const b=new TextEncoder().encode(s);let r='';for(let i=0;i<b.length;i+=0x8000)r+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(r)};
